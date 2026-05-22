@@ -23,7 +23,7 @@ const Header = ({ user, onLogout }) => {
   return (
     <header>
       <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-        <h2 style={{ margin: 0, fontSize: '1.25rem' }}>Workspace</h2>
+        <h2 style={{ margin: 0, fontSize: '1.25rem' }}>Control Panel</h2>
         
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(0,0,0,0.2)', padding: '6px 12px', borderRadius: '20px', border: '1px solid var(--border-color)' }}>
           <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Real Time API</span>
