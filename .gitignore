@@ -12,3 +12,4 @@ frontend/dist/
 # IDE
 .vscode/
 .DS_Store
+prompt.md
