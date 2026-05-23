@@ -82,7 +82,7 @@ const ApiRegistry = () => {
                         className="btn-secondary" 
                         title="Test in API Tester"
                         style={{ padding: '6px 10px', fontSize: '0.85rem', borderRadius: '6px', background: 'rgba(59, 130, 246, 0.1)', color: '#60a5fa', border: '1px solid rgba(59, 130, 246, 0.2)' }} 
-                        onClick={() => navigate('/service-virtualization/api', { state: { request: { endpoint: api.endpoint, method: api.method, category: api.category } } })}>
+                        onClick={() => navigate('/service-virtualization/api', { state: { request: api } })}>
                         🧪 Test
                       </button>
                       <button 
@@ -118,7 +118,7 @@ const ApiRegistry = () => {
                         </div>
                         <div>
                           <div style={{ marginBottom: '12px' }}>
-                            <strong style={{ color: 'var(--text-muted)', fontSize: '0.85rem', display: 'block', marginBottom: '4px' }}>Health Check URL</strong>
+                            <strong style={{ color: 'var(--text-muted)', fontSize: '0.85rem', display: 'block', marginBottom: '4px' }}>Base URL</strong>
                             <div style={{ fontFamily: 'monospace', fontSize: '0.9rem', color: api.healthCheckUrl ? 'var(--text-main)' : 'var(--text-muted)' }}>
                               {api.healthCheckUrl || 'Not configured'}
                             </div>

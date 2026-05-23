@@ -88,7 +88,7 @@ const ApiFormModal = ({ api, onClose, onSave }) => {
               <input required className="form-control" value={formData.environment} onChange={e => setFormData({...formData, environment: e.target.value})} />
             </div>
             <div className="form-group">
-              <label>Health Check URL</label>
+              <label>Base URL</label>
               <input className="form-control" value={formData.healthCheckUrl} onChange={e => setFormData({...formData, healthCheckUrl: e.target.value})} />
             </div>
             {['POST', 'PUT', 'PATCH'].includes(formData.method) && (

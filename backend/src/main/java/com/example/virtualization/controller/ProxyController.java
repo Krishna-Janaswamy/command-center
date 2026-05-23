@@ -53,8 +53,21 @@ public class ProxyController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        String toggleHeader = SecurityHelper.firstNonBlank(request.getHeader("X-Use-Toggle"), request.getHeader("X-Mock-Toggle"));
+        String globalUseToggle = "off";
+        String globalRecordingMode = "true";
+        try {
+            java.util.List<Map<String, Object>> settings = jdbc.queryForList("SELECT key, value FROM settings WHERE key IN ('useToggle', 'recordingMode')");
+            for (Map<String, Object> row : settings) {
+                String k = (String) row.get("key");
+                String v = (String) row.get("value");
+                if ("useToggle".equals(k)) globalUseToggle = v;
+                if ("recordingMode".equals(k)) globalRecordingMode = v;
+            }
+        } catch (Exception e) {}
+
+        String toggleHeader = SecurityHelper.firstNonBlank(request.getHeader("X-Use-Toggle"), request.getHeader("X-Mock-Toggle"), globalUseToggle);
         boolean useMock = "off".equalsIgnoreCase(SecurityHelper.resolveToggleValue(toggleHeader));
+        boolean autoRecord = "on".equalsIgnoreCase(SecurityHelper.resolveToggleValue(globalRecordingMode));
 
         String targetHost = request.getHeader("X-Target-Host");
         String path = request.getParameter("endpoint");
@@ -106,18 +119,20 @@ public class ProxyController {
                 reqId, request.getMethod(), url, targetHost, path, requestHeaders.toString(), body, res.statusCode, res.body, res.headers != null ? res.headers.toString() : "", 1, "other", user.getAdGroup());
 
         if (res.error != null) {
-            // Fallback to stub if upstream fails
-            Stub stub = stubMatchingService.findMatchingStub(request.getMethod(), url, body, targetHost);
-            if (stub != null) {
-                return ResponseEntity.status(stub.getResponseStatus())
-                        .header("X-Response-Source", "stub (fallback)")
-                        .body(Map.of("status", stub.getResponseStatus(), "data", stub.getResponseBody(), "source", "stub (fallback)"));
+            if (useMock) {
+                // Fallback to stub if upstream fails
+                Stub stub = stubMatchingService.findMatchingStub(request.getMethod(), url, body, targetHost);
+                if (stub != null) {
+                    return ResponseEntity.status(stub.getResponseStatus())
+                            .header("X-Response-Source", "stub (fallback)")
+                            .body(Map.of("status", stub.getResponseStatus(), "data", stub.getResponseBody(), "source", "stub (fallback)"));
+                }
             }
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(Map.of("error", res.error));
         }
 
         // Auto-create stub or version on 2xx
-        if (res.statusCode >= 200 && res.statusCode < 300) {
+        if (autoRecord && res.statusCode >= 200 && res.statusCode < 300) {
             Stub existingStub = stubMatchingService.findMatchingStub(request.getMethod(), url, body, targetHost, true);
             if (existingStub != null) {
                 // Create a new version for the existing stub

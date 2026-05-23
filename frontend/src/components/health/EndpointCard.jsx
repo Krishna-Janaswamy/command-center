@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const EndpointCard = ({ api, status, onCheck }) => {
   const [expanded, setExpanded] = useState(false);
+  const navigate = useNavigate();
 
   const getStatusColor = (s) => {
     if (!s) return 'var(--text-muted)';
@@ -27,6 +29,7 @@ const EndpointCard = ({ api, status, onCheck }) => {
               {status.responseTime && <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{status.responseTime}ms</span>}
             </>
           )}
+          <button className="btn-secondary" style={{ padding: '4px 8px', fontSize: '0.8rem', borderRadius: '4px', background: 'rgba(59, 130, 246, 0.1)', color: '#60a5fa', border: '1px solid rgba(59, 130, 246, 0.2)' }} onClick={(e) => { e.stopPropagation(); navigate('/service-virtualization/api', { state: { request: api } }); }}>Test</button>
           <button className="btn-secondary" style={{ padding: '4px 8px', fontSize: '0.8rem', borderRadius: '4px' }} onClick={(e) => { e.stopPropagation(); onCheck(); }}>Check</button>
           <span style={{ color: 'var(--text-muted)', transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>▼</span>
         </div>

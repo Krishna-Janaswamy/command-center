@@ -70,9 +70,9 @@ const StubsTab = () => {
   const filteredStubs = categoryFilter === 'All' ? stubs : stubs.filter(s => s.category === categoryFilter);
 
   return (
-    <div className="fade-in" style={{ display: 'flex', gap: '24px', height: 'calc(100vh - 120px)' }}>
+    <div className="fade-in" style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '24px', height: 'calc(100vh - 120px)' }}>
       {/* Left Panel */}
-      <div className="glass-panel" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+      <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <h2>Stubs ({filteredStubs.length})</h2>
           <button className="btn" onClick={() => { setEditStub(null); setShowForm(true); }}>+ New Stub</button>
@@ -113,7 +113,7 @@ const StubsTab = () => {
       </div>
 
       {/* Right Panel */}
-      <div className="glass-panel" style={{ flex: 1.5, display: 'flex', flexDirection: 'column' }}>
+      <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {selectedStub ? (
           <div className="fade-in" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>

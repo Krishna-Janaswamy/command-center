@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import api from '../../services/registryApi';
+import api, { settingsApi } from '../../services/registryApi';
 import { parseCurl } from '../../utils/curlParser';
 
 const APITesterTab = () => {
@@ -41,19 +41,50 @@ const APITesterTab = () => {
   useEffect(() => {
     if (location.state?.request) {
       const req = location.state.request;
-      setBaseUrl(req.baseUrl || '');
+      
+      let targetBaseUrl = req.healthCheckUrl || req.baseUrl || req.url || '';
+      let targetEndpoint = req.endpoint || '/';
+
+      try {
+        if (targetBaseUrl.includes('http')) {
+          const urlObj = new URL(targetBaseUrl);
+          targetBaseUrl = urlObj.origin;
+          
+          // If this came from a recorded request (req.url is present), use its path
+          if (req.url) {
+            targetEndpoint = urlObj.pathname + urlObj.search;
+          }
+        }
+      } catch (e) {
+        // Leave as is if parsing fails
+      }
+
+      setBaseUrl(targetBaseUrl);
       setMethod(req.method || 'GET');
       setCategory(req.category || 'Other');
-      setEndpoint(req.endpoint || '/');
-      setBody(req.body || '');
-      try {
-        JSON.parse(req.headers);
-        setHeaders(req.headers);
-      } catch (e) {
-        // leave default
+      setEndpoint(targetEndpoint);
+      setBody(req.healthCheckBody || req.body || '');
+      
+      const h = req.healthCheckHeaders || req.headers;
+      if (h && h !== '{}') {
+        try {
+          JSON.parse(h);
+          setHeaders(h);
+        } catch (e) {
+          // leave default
+        }
       }
     }
   }, [location.state]);
+
+  useEffect(() => {
+    settingsApi.getAll().then(res => {
+      const defaultTargetUrl = res.data.targetUrl || '';
+      setBaseUrl(prev => prev || defaultTargetUrl);
+    }).catch(e => {
+      console.error("Failed to fetch settings", e);
+    });
+  }, []);
 
   const handleSend = async (e) => {
     e.preventDefault();
@@ -72,7 +103,9 @@ const APITesterTab = () => {
     if (baseUrl) {
       parsedHeaders['X-Target-Host'] = baseUrl;
     }
-    parsedHeaders['X-Use-Toggle'] = useMock ? 'on' : 'off';
+    if (useMock) {
+      parsedHeaders['X-Use-Toggle'] = 'on';
+    }
     parsedHeaders['X-Api-Category'] = category;
 
     const requestData = {
