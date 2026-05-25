@@ -47,7 +47,7 @@ public class StubVersionController {
     }
 
     @PostMapping
-    public ResponseEntity<StubVersion> createVersion(
+    public ResponseEntity<?> createVersion(
             @RequestHeader(value = "Authorization", required = false) String authHeader,
             @PathVariable("stubId") String stubId,
             @RequestBody StubVersion version) {
@@ -55,11 +55,15 @@ public class StubVersionController {
         if (user == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         if (!SecurityHelper.canWrite(user)) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
 
-        return ResponseEntity.ok(stubService.createVersion(stubId, version));
+        try {
+            return ResponseEntity.ok(stubService.createVersion(stubId, version));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        }
     }
 
     @PutMapping("/{versionId}")
-    public ResponseEntity<Void> updateVersion(
+    public ResponseEntity<?> updateVersion(
             @RequestHeader(value = "Authorization", required = false) String authHeader,
             @PathVariable("stubId") String stubId,
             @PathVariable("versionId") String versionId,
@@ -68,8 +72,12 @@ public class StubVersionController {
         if (user == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         if (!SecurityHelper.canWrite(user)) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
 
-        stubService.updateVersion(versionId, version);
-        return ResponseEntity.ok().build();
+        try {
+            stubService.updateVersion(versionId, version);
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        }
     }
 
     @DeleteMapping("/{versionId}")

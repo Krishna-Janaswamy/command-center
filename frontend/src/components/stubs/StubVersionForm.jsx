@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { stubApi } from '../../services/registryApi';
 import ReactDOM from 'react-dom';
 
-const StubVersionForm = ({ stubId, onClose, onSave }) => {
-  const [formData, setFormData] = useState({
+const StubVersionForm = ({ stubId, version, onClose, onSave }) => {
+  const [formData, setFormData] = useState(version || {
     version: '',
     versionTag: '',
     responseStatus: 200,
@@ -25,11 +25,19 @@ const StubVersionForm = ({ stubId, onClose, onSave }) => {
         return;
       }
 
-      await stubApi.createVersion(stubId, formData);
+      if (version) {
+        await stubApi.updateVersion(stubId, version.versionId, formData);
+      } else {
+        await stubApi.createVersion(stubId, formData);
+      }
       onSave();
     } catch (err) {
       console.error(err);
-      alert("Failed to save version");
+      if (err.response && err.response.data && typeof err.response.data === 'string') {
+        alert(err.response.data);
+      } else {
+        alert("Failed to save version");
+      }
     } finally {
       setSaving(false);
     }
@@ -39,14 +47,14 @@ const StubVersionForm = ({ stubId, onClose, onSave }) => {
     <div className="modal-overlay">
       <div className="modal-content fade-in" style={{ maxWidth: '600px' }}>
         <div className="modal-header">
-          <h3>Create New Version</h3>
+          <h3>{version ? 'Edit Version' : 'Create New Version'}</h3>
           <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: '1.5rem', cursor: 'pointer' }}>&times;</button>
         </div>
         <form onSubmit={handleSubmit}>
           <div className="modal-body grid-2">
             <div className="form-group">
               <label>Version Name (e.g. v2)</label>
-              <input required className="form-control" placeholder="v2" value={formData.version} onChange={e => setFormData({...formData, version: e.target.value})} />
+              <input required disabled={!!version} className="form-control" placeholder="v2" value={formData.version} onChange={e => setFormData({...formData, version: e.target.value})} />
             </div>
             <div className="form-group">
               <label>Version Tag / Description</label>
@@ -67,7 +75,7 @@ const StubVersionForm = ({ stubId, onClose, onSave }) => {
           </div>
           <div className="modal-footer">
             <button type="button" className="btn btn-secondary" onClick={onClose} disabled={saving}>Cancel</button>
-            <button type="submit" className="btn" disabled={saving}>{saving ? 'Saving...' : 'Create Version'}</button>
+            <button type="submit" className="btn" disabled={saving}>{saving ? 'Saving...' : (version ? 'Save Changes' : 'Create Version')}</button>
           </div>
         </form>
       </div>

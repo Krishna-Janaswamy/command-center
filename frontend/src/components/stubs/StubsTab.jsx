@@ -11,6 +11,7 @@ const StubsTab = () => {
   const [showForm, setShowForm] = useState(false);
   const [showVersionForm, setShowVersionForm] = useState(false);
   const [editStub, setEditStub] = useState(null);
+  const [editVersion, setEditVersion] = useState(null);
   const [categoryFilter, setCategoryFilter] = useState('All');
   const navigate = useNavigate();
 
@@ -155,7 +156,7 @@ const StubsTab = () => {
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', marginTop: '24px' }}>
               <h3 style={{ margin: 0 }}>Versions</h3>
-              <button className="btn" style={{ padding: '6px 12px', fontSize: '0.85rem' }} onClick={() => setShowVersionForm(true)}>+ New Version</button>
+              <button className="btn" style={{ padding: '6px 12px', fontSize: '0.85rem' }} onClick={() => { setEditVersion(null); setShowVersionForm(true); }}>+ New Version</button>
             </div>
             <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {versions.map(v => (
@@ -165,11 +166,25 @@ const StubsTab = () => {
                       <span className="badge badge-info">{v.version}</span>
                       <span className={`badge badge-${v.responseStatus >= 200 && v.responseStatus < 300 ? 'success' : 'danger'}`}>Status {v.responseStatus}</span>
                     </div>
-                    {v.active ? (
-                      <button className="btn" style={{ background: 'var(--success)', padding: '4px 12px', fontSize: '0.8rem', cursor: 'default', opacity: 1 }} disabled>Active</button>
-                    ) : (
-                      <button className="btn-secondary" style={{ padding: '4px 12px', fontSize: '0.8rem' }} onClick={() => handleActivateVersion(v.versionId)}>Activate</button>
-                    )}
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <button className="btn-secondary" title="Edit Version" style={{ padding: '4px 8px', fontSize: '0.8rem', border: '1px solid rgba(255,255,255,0.1)' }} onClick={() => { setEditVersion(v); setShowVersionForm(true); }}>✏️</button>
+                      <button className="btn-danger" title="Delete Version" disabled={v.active} style={{ padding: '4px 8px', fontSize: '0.8rem', border: '1px solid rgba(239, 68, 68, 0.2)', background: 'rgba(239, 68, 68, 0.15)', color: '#fca5a5', opacity: v.active ? 0.5 : 1, cursor: v.active ? 'not-allowed' : 'pointer' }} onClick={async () => {
+                        if (window.confirm('Delete version?')) {
+                          try {
+                            await stubApi.deleteVersion(selectedStub.id, v.versionId);
+                            loadVersions(selectedStub.id);
+                          } catch (err) {
+                            console.error(err);
+                            alert("Failed to delete version");
+                          }
+                        }
+                      }}>🗑️</button>
+                      {v.active ? (
+                        <button className="btn" style={{ background: 'var(--success)', padding: '4px 12px', fontSize: '0.8rem', cursor: 'default', opacity: 1 }} disabled>Active</button>
+                      ) : (
+                        <button className="btn-secondary" style={{ padding: '4px 12px', fontSize: '0.8rem' }} onClick={() => handleActivateVersion(v.versionId)}>Activate</button>
+                      )}
+                    </div>
                   </div>
                   {v.versionTag && <div style={{ marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-muted)' }}>Tag: {v.versionTag}</div>}
                   <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '4px' }}>Response Body:</div>
@@ -196,6 +211,7 @@ const StubsTab = () => {
       {showVersionForm && selectedStub && (
         <StubVersionForm
           stubId={selectedStub.id}
+          version={editVersion}
           onClose={() => setShowVersionForm(false)}
           onSave={() => { setShowVersionForm(false); loadVersions(selectedStub.id); }}
         />

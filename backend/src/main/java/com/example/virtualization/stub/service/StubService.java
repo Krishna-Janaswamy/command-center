@@ -126,12 +126,37 @@ public class StubService {
         if (version.getVersion() == null || version.getVersion().isEmpty()) {
             version.setVersion("v1");
         }
+
+        List<StubVersion> existingVersions = getVersions(stubId);
+        boolean exists = existingVersions.stream().anyMatch(v -> 
+            v.getVersion().equals(version.getVersion()) && 
+            v.getResponseStatus() == version.getResponseStatus()
+        );
+        if (exists) {
+            throw new IllegalArgumentException("Version with the same version name and status code already exists");
+        }
+
         jdbc.update("INSERT INTO stub_versions (versionId, stubId, version, versionTag, responseStatus, responseBody, responseHeaders, isActive) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                 version.getVersionId(), version.getStubId(), version.getVersion(), version.getVersionTag(), version.getResponseStatus(), version.getResponseBody(), version.getResponseHeaders(), version.isActive() ? 1 : 0);
         return getVersion(version.getVersionId());
     }
 
     public void updateVersion(String versionId, StubVersion version) {
+        StubVersion current = getVersion(versionId);
+        if (current == null) return;
+        
+        if (current.getResponseStatus() != version.getResponseStatus()) {
+            List<StubVersion> existingVersions = getVersions(current.getStubId());
+            boolean exists = existingVersions.stream().anyMatch(v -> 
+                !v.getVersionId().equals(versionId) &&
+                v.getVersion().equals(current.getVersion()) && 
+                v.getResponseStatus() == version.getResponseStatus()
+            );
+            if (exists) {
+                throw new IllegalArgumentException("Version with the same version name and status code already exists");
+            }
+        }
+
         jdbc.update("UPDATE stub_versions SET versionTag=?, responseStatus=?, responseBody=?, responseHeaders=? WHERE versionId=?",
                 version.getVersionTag(), version.getResponseStatus(), version.getResponseBody(), version.getResponseHeaders(), versionId);
     }
