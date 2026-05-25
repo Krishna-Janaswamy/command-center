@@ -104,9 +104,13 @@ public class ProxyController {
                         Thread.sleep(stub.getDelay());
                     } catch (InterruptedException ignored) {}
                 }
+                String reqId = UUID.randomUUID().toString();
+                jdbc.update("INSERT INTO requests (id, method, url, baseUrl, endpoint, headers, body, status, response, responseHeaders, isRecorded, category, ownerGroup) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                        reqId, request.getMethod(), url, targetHost, path, requestHeaders.toString(), body, stub.getResponseStatus(), stub.getResponseBody(), stub.getResponseHeaders() != null ? stub.getResponseHeaders() : "", 1, stub.getCategory() != null ? stub.getCategory() : "other", user.getAdGroup());
+
                 return ResponseEntity.status(stub.getResponseStatus())
                         .header("X-Response-Source", "stub")
-                        .body(Map.of("status", stub.getResponseStatus(), "data", stub.getResponseBody(), "source", "stub"));
+                        .body(Map.of("status", stub.getResponseStatus(), "data", stub.getResponseBody(), "source", "stub", "recordedId", reqId));
             }
             // If no stub is found, fall through to live API to allow auto-recording
         }
@@ -123,9 +127,13 @@ public class ProxyController {
                 // Fallback to stub if upstream fails
                 Stub stub = stubMatchingService.findMatchingStub(request.getMethod(), url, body, targetHost);
                 if (stub != null) {
+                    String fallbackReqId = UUID.randomUUID().toString();
+                    jdbc.update("INSERT INTO requests (id, method, url, baseUrl, endpoint, headers, body, status, response, responseHeaders, isRecorded, category, ownerGroup) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                            fallbackReqId, request.getMethod(), url, targetHost, path, requestHeaders.toString(), body, stub.getResponseStatus(), stub.getResponseBody(), stub.getResponseHeaders() != null ? stub.getResponseHeaders() : "", 1, stub.getCategory() != null ? stub.getCategory() : "other", user.getAdGroup());
+
                     return ResponseEntity.status(stub.getResponseStatus())
                             .header("X-Response-Source", "stub (fallback)")
-                            .body(Map.of("status", stub.getResponseStatus(), "data", stub.getResponseBody(), "source", "stub (fallback)"));
+                            .body(Map.of("status", stub.getResponseStatus(), "data", stub.getResponseBody(), "source", "stub (fallback)", "recordedId", fallbackReqId));
                 }
             }
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(Map.of("error", res.error));
