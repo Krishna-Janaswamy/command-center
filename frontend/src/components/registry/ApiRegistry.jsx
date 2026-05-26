@@ -8,10 +8,32 @@ const ApiRegistry = () => {
   const [showModal, setShowModal] = useState(false);
   const [editApi, setEditApi] = useState(null);
   const [expandedApi, setExpandedApi] = useState(null);
+  const [responses, setResponses] = useState({});
+  const [loadingResponse, setLoadingResponse] = useState({});
   const navigate = useNavigate();
 
-  const toggleExpand = (id) => {
+  const toggleExpand = async (id) => {
     setExpandedApi(prev => prev === id ? null : id);
+    if (expandedApi !== id && !responses[id]) {
+       const api = apis.find(a => a.id === id);
+       if(api) {
+           setLoadingResponse(prev => ({ ...prev, [id]: true }));
+           try {
+               const { healthApi } = await import('../../services/registryApi');
+               const res = await healthApi.check({
+                  url: (api.baseUrl || '') + api.endpoint,
+                  method: api.method,
+                  headers: api.healthCheckHeaders && api.healthCheckHeaders !== '{}' ? JSON.parse(api.healthCheckHeaders) : {},
+                  body: api.healthCheckBody
+               });
+               setResponses(prev => ({ ...prev, [id]: res.data.body }));
+           } catch(err) {
+               setResponses(prev => ({ ...prev, [id]: 'Error fetching response' }));
+           } finally {
+               setLoadingResponse(prev => ({ ...prev, [id]: false }));
+           }
+       }
+    }
   };
 
   const loadApis = async () => {
@@ -109,35 +131,32 @@ const ApiRegistry = () => {
                 {expandedApi === api.id && (
                   <tr style={{ background: 'rgba(0,0,0,0.2)' }}>
                     <td colSpan="8" style={{ padding: '24px' }}>
-                      <div className="grid-2">
+                      <div style={{ display: 'flex', gap: '32px', marginBottom: '16px' }}>
                         <div>
-                          <div style={{ marginBottom: '12px' }}>
-                            <strong style={{ color: 'var(--text-muted)', fontSize: '0.85rem', display: 'block', marginBottom: '4px' }}>Description</strong>
-                            <div>{api.description || 'No description provided.'}</div>
-                          </div>
-                          <div style={{ marginBottom: '12px' }}>
-                            <strong style={{ color: 'var(--text-muted)', fontSize: '0.85rem', display: 'block', marginBottom: '4px' }}>Created At</strong>
-                            <div style={{ fontSize: '0.9rem' }}>{new Date(api.createdAt).toLocaleString()}</div>
-                          </div>
+                          <strong style={{ color: 'var(--text-muted)', fontSize: '0.85rem', display: 'block', marginBottom: '4px' }}>Created At</strong>
+                          <div style={{ fontSize: '0.9rem' }}>{new Date(api.createdAt).toLocaleString()}</div>
                         </div>
                         <div>
-                          <div style={{ marginBottom: '12px' }}>
-                            <strong style={{ color: 'var(--text-muted)', fontSize: '0.85rem', display: 'block', marginBottom: '4px' }}>Base URL</strong>
-                            <div style={{ fontFamily: 'monospace', fontSize: '0.9rem', color: api.baseUrl ? 'var(--text-main)' : 'var(--text-muted)' }}>
-                              {api.baseUrl || 'Not configured'}
-                            </div>
-                          </div>
-                          <div style={{ marginBottom: '12px' }}>
-                            <strong style={{ color: 'var(--text-muted)', fontSize: '0.85rem', display: 'block', marginBottom: '4px' }}>Health Check Config</strong>
-                            <div style={{ display: 'flex', gap: '8px' }}>
-                              {api.healthCheckHeaders && api.healthCheckHeaders !== '{}' && <span className="badge badge-secondary">Custom Headers</span>}
-                              {api.healthCheckBody && <span className="badge badge-secondary">Custom Body</span>}
-                              {api.retryOn500 === 1 && <span className="badge badge-warning">Retry on 500</span>}
-                              {api.isCustom === 1 && <span className="badge badge-info">Custom Logic</span>}
-                              {(!api.healthCheckHeaders || api.healthCheckHeaders === '{}') && !api.healthCheckBody && !api.retryOn500 && !api.isCustom && <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Standard Config</span>}
-                            </div>
-                          </div>
+                          <strong style={{ color: 'var(--text-muted)', fontSize: '0.85rem', display: 'block', marginBottom: '4px' }}>Environment</strong>
+                          <div style={{ fontSize: '0.9rem' }}>{api.environment}</div>
                         </div>
+                      </div>
+                      
+                      <div>
+                        <strong style={{ color: 'var(--text-muted)', fontSize: '0.85rem', display: 'block', marginBottom: '4px' }}>Response Payload</strong>
+                        {loadingResponse[api.id] ? (
+                          <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Loading response...</div>
+                        ) : (
+                          <pre style={{ maxHeight: '200px', overflowY: 'auto', overflowX: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-word', background: 'rgba(0,0,0,0.2)', padding: '12px', borderRadius: '6px' }}>
+                            {(() => {
+                              try {
+                                return JSON.stringify(JSON.parse(responses[api.id]), null, 2);
+                              } catch(e) {
+                                return responses[api.id] || 'No response data.';
+                              }
+                            })()}
+                          </pre>
+                        )}
                       </div>
                     </td>
                   </tr>

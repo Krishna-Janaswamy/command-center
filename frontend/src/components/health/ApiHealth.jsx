@@ -49,6 +49,7 @@ const ApiHealth = () => {
           status: (res.data.statusCode >= 200 && res.data.statusCode < 300) ? 'Up and Stable' : 'DOWN',
           statusCode: res.data.statusCode,
           responseTime: res.data.responseTime || time,
+          body: res.data.body,
           error: res.data.error,
           lastChecked: new Date()
         }

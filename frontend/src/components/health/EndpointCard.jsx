@@ -36,25 +36,13 @@ const EndpointCard = ({ api, status, onCheck }) => {
       </div>
       
       {expanded && (
-        <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--border-color)', display: 'grid', gap: '12px', fontSize: '0.9rem' }}>
-          <div className="grid-2">
+        <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--border-color)', fontSize: '0.9rem' }}>
+          <div style={{ display: 'flex', gap: '32px', marginBottom: '12px' }}>
             <div>
-              <div style={{ color: 'var(--text-muted)', marginBottom: '4px', fontSize: '0.85rem' }}>Description</div>
-              <div style={{ marginBottom: '12px' }}>{api.description || 'No description provided.'}</div>
-              
               <div style={{ color: 'var(--text-muted)', marginBottom: '4px', fontSize: '0.85rem' }}>Created At</div>
               <div>{new Date(api.createdAt).toLocaleString()}</div>
             </div>
             <div>
-              <div style={{ color: 'var(--text-muted)', marginBottom: '4px', fontSize: '0.85rem' }}>Health Check Config</div>
-              <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
-                {api.healthCheckHeaders && api.healthCheckHeaders !== '{}' && <span className="badge badge-secondary">Custom Headers</span>}
-                {api.healthCheckBody && <span className="badge badge-secondary">Custom Body</span>}
-                {api.retryOn500 === 1 && <span className="badge badge-warning">Retry on 500</span>}
-                {api.isCustom === 1 && <span className="badge badge-info">Custom Logic</span>}
-                {(!api.healthCheckHeaders || api.healthCheckHeaders === '{}') && !api.healthCheckBody && !api.retryOn500 && !api.isCustom && <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Standard Config</span>}
-              </div>
-
               <div style={{ color: 'var(--text-muted)', marginBottom: '4px', fontSize: '0.85rem' }}>Environment</div>
               <div>{api.environment}</div>
             </div>
@@ -62,6 +50,20 @@ const EndpointCard = ({ api, status, onCheck }) => {
           {status && status.error && (
             <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid var(--danger)', padding: '12px', borderRadius: '6px', color: '#f87171' }}>
               <strong>Error:</strong> {status.error}
+            </div>
+          )}
+          {status && status.body && (
+            <div style={{ marginTop: '8px' }}>
+              <div style={{ color: 'var(--text-muted)', marginBottom: '4px', fontSize: '0.85rem' }}>Response Payload</div>
+              <pre style={{ maxHeight: '200px', overflowY: 'auto', overflowX: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-word', background: 'rgba(0,0,0,0.2)', padding: '12px', borderRadius: '6px' }}>
+                {(() => {
+                  try {
+                    return JSON.stringify(JSON.parse(status.body), null, 2);
+                  } catch(e) {
+                    return status.body;
+                  }
+                })()}
+              </pre>
             </div>
           )}
           {status && status.lastChecked && (
