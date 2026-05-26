@@ -11,24 +11,24 @@ const Dashboard = () => {
         borderRadius: '20px',
         padding: '56px 48px',
         marginBottom: '48px',
-        border: '1px solid rgba(255, 255, 255, 0.05)',
+        border: '1px solid rgba(0, 0, 0, 0.05)',
         boxShadow: '0 20px 40px -20px rgba(0,0,0,0.5)',
         position: 'relative',
         overflow: 'hidden'
       }}>
         <div style={{ position: 'relative', zIndex: 1 }}>
-          <h1 style={{ fontSize: '3.2rem', marginBottom: '16px', fontWeight: 700, letterSpacing: '-1px', background: 'linear-gradient(to right, #ffffff, #a78bfa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          <h1 style={{ fontSize: '3.2rem', marginBottom: '16px', fontWeight: 700, letterSpacing: '-1px', background: 'linear-gradient(to right, var(--text-main), #8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
             Command Center
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '1.15rem', maxWidth: '650px', lineHeight: '1.6', marginBottom: '36px' }}>
-            The ultimate hub for API orchestration. Manage your external registries, monitor real-time health, and seamlessly virtualize network traffic with intelligent stubs.
+            The ultimate hub for API orchestration. Manage your external registries, monitor real-time health, and seamlessly virtualize network with intelligent stubs.
           </p>
           <div style={{ display: 'flex', gap: '16px' }}>
             <button className="btn" style={{ padding: '14px 28px', fontSize: '1rem', borderRadius: '8px' }} onClick={() => navigate('/api-registry')}>
               Register an API
             </button>
             <button className="btn-secondary" style={{ padding: '14px 28px', fontSize: '1rem', borderRadius: '8px' }} onClick={() => navigate('/service-virtualization/api')}>
-              Test Proxy
+              Test Requests
             </button>
           </div>
         </div>

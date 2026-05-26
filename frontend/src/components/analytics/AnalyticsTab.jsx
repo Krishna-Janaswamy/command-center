@@ -185,7 +185,7 @@ const AnalyticsTab = () => {
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               style={{
-                background: 'rgba(0,0,0,0.2)', 
+                background: 'rgba(255,255,255,0.5)', 
                 border: '1px solid var(--border-color)', 
                 color: 'var(--text-main)', 
                 padding: '6px 12px', 
@@ -199,7 +199,7 @@ const AnalyticsTab = () => {
               value={selectedBaseUrl} 
               onChange={e => setSelectedBaseUrl(e.target.value)}
               style={{ 
-                background: 'rgba(0,0,0,0.2)', 
+                background: 'rgba(255,255,255,0.5)', 
                 border: '1px solid var(--border-color)', 
                 color: 'var(--text-main)', 
                 padding: '6px 12px', 
@@ -217,10 +217,10 @@ const AnalyticsTab = () => {
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {filteredEndpointsData.endpoints.map(ep => (
-            <div key={ep.name} className="endpoint-item" style={{ background: 'rgba(0,0,0,0.1)', padding: '12px 16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+            <div key={ep.name} className="endpoint-item" style={{ background: 'rgba(0,0,0,0.02)', padding: '12px 16px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.05)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '0.95rem' }}>
                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '80%', fontWeight: 500, color: 'var(--text-main)' }} title={ep.name}>{ep.name}</span>
-                <span style={{ background: 'rgba(139, 92, 246, 0.2)', color: '#a78bfa', padding: '2px 10px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 600 }}>{ep.count} hits</span>
+                <span style={{ background: 'rgba(0,0,0,0.05)', color: '#8b5cf6', padding: '2px 10px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 600 }}>{ep.count} hits</span>
               </div>
               <div className="progress-bar-bg" style={{ height: '6px' }}>
                 <div className="progress-bar-fill" style={{ width: `${(ep.count / filteredEndpointsData.total) * 100}%` }} />

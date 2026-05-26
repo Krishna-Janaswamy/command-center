@@ -38,7 +38,7 @@ const RequestDetail = ({ request, onClose, onDelete }) => {
           <button 
             className="btn-secondary" 
             title="Close"
-            style={{ padding: '6px 12px', fontSize: '0.85rem', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)' }} 
+            style={{ padding: '6px 12px', fontSize: '0.85rem', borderRadius: '6px', border: '1px solid rgba(0,0,0,0.1)' }} 
             onClick={onClose}>
             ✕ Close
           </button>

@@ -52,11 +52,8 @@ const StubVersionForm = ({ stubId, version, onClose, onSave }) => {
         </div>
         <form onSubmit={handleSubmit}>
           <div className="modal-body grid-2">
-            <div className="form-group">
-              <label>Version Name (e.g. v2)</label>
-              <input required disabled={!!version} className="form-control" placeholder="v2" value={formData.version} onChange={e => setFormData({...formData, version: e.target.value})} />
-            </div>
-            <div className="form-group">
+
+            <div className="form-group" style={{ gridColumn: 'span 2' }}>
               <label>Version Tag / Description</label>
               <input className="form-control" placeholder="Error Scenario" value={formData.versionTag} onChange={e => setFormData({...formData, versionTag: e.target.value})} />
             </div>

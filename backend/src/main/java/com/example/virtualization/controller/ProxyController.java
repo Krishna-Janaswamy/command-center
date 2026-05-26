@@ -224,15 +224,7 @@ public class ProxyController {
                     stub.setOwnerGroup(user.getAdGroup());
                     Stub createdStub = stubService.createOrUpdateStub(stub);
 
-                    // Create initial v1 version
-                    com.example.virtualization.model.StubVersion v1 = new com.example.virtualization.model.StubVersion();
-                    v1.setVersion("v1");
-                    v1.setVersionTag("Initial recording");
-                    v1.setResponseStatus(res.statusCode);
-                    v1.setResponseBody(res.body);
-                    v1.setResponseHeaders(res.headers != null ? res.headers.toString() : "");
-                    v1.setActive(true);
-                    stubService.createVersion(createdStub.getId(), v1);
+
                 }
             }
         } catch (Exception e) {

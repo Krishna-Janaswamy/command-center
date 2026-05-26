@@ -67,7 +67,7 @@ const RequestsTab = () => {
               key={req.id} 
               onClick={() => setSelectedRequest(req)}
               style={{
-                padding: '12px', background: selectedRequest?.id === req.id ? 'rgba(255,255,255,0.05)' : 'transparent',
+                padding: '12px', background: selectedRequest?.id === req.id ? 'rgba(0,0,0,0.05)' : 'transparent',
                 border: '1px solid var(--border-color)', borderRadius: '8px', cursor: 'pointer',
                 borderColor: selectedRequest?.id === req.id ? 'var(--primary)' : 'var(--border-color)'
               }}

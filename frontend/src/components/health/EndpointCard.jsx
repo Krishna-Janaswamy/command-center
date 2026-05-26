@@ -26,7 +26,7 @@ const EndpointCard = ({ api, status, onCheck }) => {
           {status && (
             <>
               <span style={{ fontSize: '0.85rem', color: getStatusColor(status), fontWeight: 500, marginRight: '4px' }}>{status.status}</span>
-              {status.statusCode && <span className="badge" style={{ background: 'rgba(255,255,255,0.1)' }}>{status.statusCode}</span>}
+              {status.statusCode && <span className="badge" style={{ background: 'rgba(0,0,0,0.05)', color: 'var(--text-main)' }}>{status.statusCode}</span>}
               {status.responseTime && <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{status.responseTime}ms</span>}
             </>
           )}
@@ -55,7 +55,7 @@ const EndpointCard = ({ api, status, onCheck }) => {
           {status && status.body && (
             <div style={{ marginTop: '8px' }}>
               <div style={{ color: 'var(--text-muted)', marginBottom: '4px', fontSize: '0.85rem' }}>Response Payload</div>
-              <pre style={{ maxHeight: '200px', overflowY: 'auto', overflowX: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-word', background: 'rgba(0,0,0,0.2)', padding: '12px', borderRadius: '6px' }}>
+              <pre style={{ maxHeight: '200px', overflowY: 'auto', overflowX: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-word', background: 'rgba(0,0,0,0.05)', padding: '12px', borderRadius: '6px' }}>
                 {(() => {
                   try {
                     return JSON.stringify(JSON.parse(status.body), null, 2);

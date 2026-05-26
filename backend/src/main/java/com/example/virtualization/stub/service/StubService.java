@@ -70,6 +70,16 @@ public class StubService {
             stub.setId(UUID.randomUUID().toString());
             jdbc.update("INSERT INTO stubs (id, name, method, endpoint, baseUrl, environment, description, requestMatcher, responseStatus, responseBody, responseHeaders, delay, enabled, category, version, ownerGroup) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     stub.getId(), stub.getName(), stub.getMethod(), stub.getEndpoint(), stub.getBaseUrl(), stub.getEnvironment() == null ? "Dev" : stub.getEnvironment(), stub.getDescription(), stub.getRequestMatcher(), stub.getResponseStatus(), stub.getResponseBody(), stub.getResponseHeaders(), stub.getDelay(), stub.isEnabled() ? 1 : 0, stub.getCategory(), stub.getVersion() == null ? "v1" : stub.getVersion(), stub.getOwnerGroup());
+            
+            StubVersion v1 = new StubVersion();
+            v1.setStubId(stub.getId());
+            v1.setVersion("v1");
+            v1.setVersionTag("Initial version");
+            v1.setResponseStatus(stub.getResponseStatus());
+            v1.setResponseBody(stub.getResponseBody());
+            v1.setResponseHeaders(stub.getResponseHeaders());
+            v1.setActive(true);
+            createVersion(stub.getId(), v1);
         } else {
             jdbc.update("UPDATE stubs SET name=?, method=?, endpoint=?, baseUrl=?, environment=?, description=?, requestMatcher=?, responseStatus=?, responseBody=?, responseHeaders=?, delay=?, enabled=?, category=?, version=? WHERE id=?",
                     stub.getName(), stub.getMethod(), stub.getEndpoint(), stub.getBaseUrl(), stub.getEnvironment() == null ? "Dev" : stub.getEnvironment(), stub.getDescription(), stub.getRequestMatcher(), stub.getResponseStatus(), stub.getResponseBody(), stub.getResponseHeaders(), stub.getDelay(), stub.isEnabled() ? 1 : 0, stub.getCategory(), stub.getVersion() == null ? "v1" : stub.getVersion(), stub.getId());
@@ -127,11 +137,23 @@ public class StubService {
     public StubVersion createVersion(String stubId, StubVersion version) {
         version.setVersionId(UUID.randomUUID().toString());
         version.setStubId(stubId);
+        List<StubVersion> existingVersions = getVersions(stubId);
+
         if (version.getVersion() == null || version.getVersion().isEmpty()) {
-            version.setVersion("v1");
+            int maxV = 0;
+            for (StubVersion ev : existingVersions) {
+                if (ev.getVersion() != null && ev.getVersion().startsWith("v")) {
+                    try {
+                        int num = Integer.parseInt(ev.getVersion().substring(1));
+                        if (num > maxV) maxV = num;
+                    } catch (NumberFormatException e) {
+                        // ignore
+                    }
+                }
+            }
+            version.setVersion("v" + (maxV + 1));
         }
 
-        List<StubVersion> existingVersions = getVersions(stubId);
         boolean exists = existingVersions.stream().anyMatch(v -> 
             v.getVersion().equals(version.getVersion()) && 
             v.getResponseStatus() == version.getResponseStatus()
@@ -153,7 +175,7 @@ public class StubService {
             List<StubVersion> existingVersions = getVersions(current.getStubId());
             boolean exists = existingVersions.stream().anyMatch(v -> 
                 !v.getVersionId().equals(versionId) &&
-                v.getVersion().equals(current.getVersion()) && 
+                java.util.Objects.equals(v.getVersion(), current.getVersion()) && 
                 v.getResponseStatus() == version.getResponseStatus()
             );
             if (exists) {
@@ -163,6 +185,11 @@ public class StubService {
 
         jdbc.update("UPDATE stub_versions SET versionTag=?, responseStatus=?, responseBody=?, responseHeaders=? WHERE versionId=?",
                 version.getVersionTag(), version.getResponseStatus(), version.getResponseBody(), version.getResponseHeaders(), versionId);
+
+        if (current.isActive()) {
+            jdbc.update("UPDATE stubs SET responseStatus = ?, responseBody = ?, responseHeaders = ? WHERE id = ?",
+                    version.getResponseStatus(), version.getResponseBody(), version.getResponseHeaders(), current.getStubId());
+        }
     }
 
     public void deleteVersion(String versionId) {

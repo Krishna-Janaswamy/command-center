@@ -1,16 +1,16 @@
 :root {
-  --primary: #8b5cf6;
-  --primary-hover: #7c3aed;
-  --bg-color: #0f172a;
-  --panel-bg: rgba(30, 41, 59, 0.7);
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --border-color: rgba(255, 255, 255, 0.1);
+  --primary: #7c3aed;
+  --primary-hover: #6d28d9;
+  --bg-color: #f8fafc;
+  --panel-bg: rgba(255, 255, 255, 0.7);
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border-color: rgba(0, 0, 0, 0.1);
   --danger: #ef4444;
   --success: #10b981;
   --warning: #f59e0b;
   --info: #3b82f6;
-  --glass-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --glass-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
 }
 
 * {
@@ -47,7 +47,7 @@ body {
 
 .sidebar {
   width: 260px;
-  background: rgba(15, 23, 42, 0.8);
+  background: rgba(248, 250, 252, 0.8);
   border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
@@ -82,7 +82,7 @@ body {
 }
 
 .sidebar nav a:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.05);
   color: var(--text-main);
 }
 
@@ -106,7 +106,7 @@ header {
   justify-content: space-between;
   padding: 0 32px;
   border-bottom: 1px solid var(--border-color);
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(248, 250, 252, 0.6);
   backdrop-filter: blur(8px);
 }
 
@@ -150,13 +150,13 @@ h3 { font-size: 1.25rem; margin-bottom: 12px; font-weight: 500; }
 }
 
 .btn-secondary {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   color: var(--text-main);
 }
 .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.15);
 }
 
 .btn-danger {
@@ -182,7 +182,7 @@ h3 { font-size: 1.25rem; margin-bottom: 12px; font-weight: 500; }
 }
 .form-control {
   width: 100%;
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.03);
   border: 1px solid var(--border-color);
   color: var(--text-main);
   padding: 10px 14px;
@@ -211,7 +211,7 @@ th {
   font-size: 0.9rem;
 }
 tr:hover td {
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(0, 0, 0, 0.03);
 }
 
 /* Badges */
@@ -267,7 +267,7 @@ tr:hover td {
 
 /* Code */
 pre {
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.05);
   padding: 16px;
   border-radius: 8px;
   overflow-x: auto;
@@ -290,7 +290,7 @@ pre {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(255, 255, 255, 0.6);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -330,7 +330,7 @@ pre {
 }
 .glass-panel-hover:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 20px -8px rgba(0, 0, 0, 0.3), 0 0 15px rgba(139, 92, 246, 0.1);
+  box-shadow: 0 12px 20px -8px rgba(0, 0, 0, 0.15), 0 0 15px rgba(139, 92, 246, 0.1);
   border-color: rgba(139, 92, 246, 0.3);
 }
 
@@ -353,7 +353,7 @@ pre {
 .progress-bar-bg {
   width: 100%;
   height: 8px;
-  background: rgba(255,255,255,0.05);
+  background: rgba(0,0,0,0.05);
   border-radius: 4px;
   overflow: hidden;
   box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
@@ -368,9 +368,9 @@ pre {
 .endpoint-item {
   padding: 12px;
   border-radius: 8px;
-  background: rgba(255,255,255,0.02);
+  background: rgba(0,0,0,0.02);
   transition: background 0.2s;
 }
 .endpoint-item:hover {
-  background: rgba(255,255,255,0.05);
+  background: rgba(0,0,0,0.05);
 }

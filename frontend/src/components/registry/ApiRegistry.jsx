@@ -87,7 +87,7 @@ const ApiRegistry = () => {
           <tbody>
             {apis.map(api => (
               <React.Fragment key={api.id}>
-                <tr style={{ cursor: 'pointer', background: expandedApi === api.id ? 'rgba(255,255,255,0.02)' : 'transparent' }} onClick={() => toggleExpand(api.id)}>
+                <tr style={{ cursor: 'pointer', background: expandedApi === api.id ? 'rgba(0,0,0,0.03)' : 'transparent' }} onClick={() => toggleExpand(api.id)}>
                   <td style={{ color: 'var(--text-muted)' }}>
                     {expandedApi === api.id ? '▼' : '▶'}
                   </td>
@@ -114,7 +114,7 @@ const ApiRegistry = () => {
                       <button 
                         className="btn-secondary" 
                         title="Edit API"
-                        style={{ padding: '6px 10px', fontSize: '0.85rem', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)' }} 
+                        style={{ padding: '6px 10px', fontSize: '0.85rem', borderRadius: '6px', border: '1px solid rgba(0,0,0,0.1)' }} 
                         onClick={() => { setEditApi(api); setShowModal(true); }}>
                         ✏️ Edit
                       </button>
@@ -129,7 +129,7 @@ const ApiRegistry = () => {
                   </td>
                 </tr>
                 {expandedApi === api.id && (
-                  <tr style={{ background: 'rgba(0,0,0,0.2)' }}>
+                  <tr style={{ background: 'rgba(0,0,0,0.02)' }}>
                     <td colSpan="8" style={{ padding: '24px' }}>
                       <div style={{ display: 'flex', gap: '32px', marginBottom: '16px' }}>
                         <div>
@@ -147,7 +147,7 @@ const ApiRegistry = () => {
                         {loadingResponse[api.id] ? (
                           <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Loading response...</div>
                         ) : (
-                          <pre style={{ maxHeight: '200px', overflowY: 'auto', overflowX: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-word', background: 'rgba(0,0,0,0.2)', padding: '12px', borderRadius: '6px' }}>
+                          <pre style={{ maxHeight: '200px', overflowY: 'auto', overflowX: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-word', background: 'rgba(0,0,0,0.05)', padding: '12px', borderRadius: '6px' }}>
                             {(() => {
                               try {
                                 return JSON.stringify(JSON.parse(responses[api.id]), null, 2);

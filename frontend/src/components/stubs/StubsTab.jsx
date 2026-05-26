@@ -89,7 +89,7 @@ const StubsTab = () => {
               key={stub.id} 
               onClick={() => setSelectedStub(stub)}
               style={{
-                padding: '12px', background: selectedStub?.id === stub.id ? 'rgba(255,255,255,0.05)' : 'transparent',
+                padding: '12px', background: selectedStub?.id === stub.id ? 'rgba(0,0,0,0.05)' : 'transparent',
                 border: '1px solid var(--border-color)', borderRadius: '8px', cursor: 'pointer',
                 borderColor: selectedStub?.id === stub.id ? 'var(--primary)' : 'var(--border-color)'
               }}
@@ -137,7 +137,7 @@ const StubsTab = () => {
                 <button 
                   className="btn-secondary" 
                   title="Edit Stub"
-                  style={{ padding: '6px 12px', fontSize: '0.85rem', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)' }} 
+                  style={{ padding: '6px 12px', fontSize: '0.85rem', borderRadius: '6px', border: '1px solid rgba(0,0,0,0.1)' }} 
                   onClick={() => { setEditStub(selectedStub); setShowForm(true); }}>
                   ✏️ Edit
                 </button>
@@ -170,7 +170,7 @@ const StubsTab = () => {
                       <span className={`badge badge-${v.responseStatus >= 200 && v.responseStatus < 300 ? 'success' : 'danger'}`}>Status {v.responseStatus}</span>
                     </div>
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                      <button className="btn-secondary" title="Edit Version" style={{ padding: '4px 8px', fontSize: '0.8rem', border: '1px solid rgba(255,255,255,0.1)' }} onClick={() => { setEditVersion(v); setShowVersionForm(true); }}>✏️</button>
+                      <button className="btn-secondary" title="Edit Version" style={{ padding: '4px 8px', fontSize: '0.8rem', border: '1px solid rgba(0,0,0,0.1)' }} onClick={() => { setEditVersion(v); setShowVersionForm(true); }}>✏️</button>
                       <button className="btn-danger" title="Delete Version" disabled={v.active} style={{ padding: '4px 8px', fontSize: '0.8rem', border: '1px solid rgba(239, 68, 68, 0.2)', background: 'rgba(239, 68, 68, 0.15)', color: '#fca5a5', opacity: v.active ? 0.5 : 1, cursor: v.active ? 'not-allowed' : 'pointer' }} onClick={async () => {
                         if (window.confirm('Delete version?')) {
                           try {

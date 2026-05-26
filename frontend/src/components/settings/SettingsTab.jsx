@@ -45,7 +45,7 @@ const SettingsTab = () => {
         <div className="glass-panel">
           <h3>Operation Modes</h3>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '24px' }}>
-            Control the global behavior of the service virtualization proxy.
+            Control the global behavior of the service virtualization.
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
