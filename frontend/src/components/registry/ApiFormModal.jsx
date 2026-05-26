@@ -5,7 +5,7 @@ import { parseCurl } from '../../utils/curlParser';
 
 const ApiFormModal = ({ api, onClose, onSave }) => {
   const [formData, setFormData] = useState({
-    name: '', version: 'v1', method: 'GET', endpoint: '', category: 'Other', environment: 'Dev',
+    name: '', method: 'GET', endpoint: '', category: 'Other', environment: 'Dev',
     description: '', baseUrl: '', healthCheckHeaders: '{}', healthCheckBody: '',
     healthCheckParams: '{}', retryOn500: 0, isCustom: false
   });
@@ -68,10 +68,6 @@ const ApiFormModal = ({ api, onClose, onSave }) => {
             <div className="form-group">
               <label>Name</label>
               <input required className="form-control" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
-            </div>
-            <div className="form-group">
-              <label>Version</label>
-              <input required className="form-control" value={formData.version} onChange={e => setFormData({...formData, version: e.target.value})} />
             </div>
             <div className="form-group">
               <label>Base URL (Upstream Host)</label>

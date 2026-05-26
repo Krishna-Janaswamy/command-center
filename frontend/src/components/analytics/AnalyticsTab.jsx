@@ -20,6 +20,7 @@ ChartJS.register(
 const AnalyticsTab = () => {
   const [requests, setRequests] = useState([]);
   const [selectedBaseUrl, setSelectedBaseUrl] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
   
   useEffect(() => {
     requestApi.getAll().then(res => setRequests(res.data)).catch(console.error);
@@ -61,9 +62,11 @@ const AnalyticsTab = () => {
       const bUrl = r.baseUrl ? r.baseUrl.replace(/^https?:\/\//, '') : '';
       if (selectedBaseUrl !== 'All' && bUrl !== selectedBaseUrl) return;
       
-      filteredTotal++;
       const displayName = selectedBaseUrl === 'All' && bUrl ? `${bUrl}${r.endpoint}` : r.endpoint;
       
+      if (searchQuery && !displayName.toLowerCase().includes(searchQuery.toLowerCase())) return;
+
+      filteredTotal++;
       if (!endpointMap[displayName]) {
         endpointMap[displayName] = 0;
       }
@@ -73,10 +76,10 @@ const AnalyticsTab = () => {
     const endpoints = Object.entries(endpointMap)
       .sort((a, b) => b[1] - a[1])
       .map(([name, count]) => ({ name, count }))
-      .slice(0, 5);
+      .slice(0, 20); // show top 20 or more if searching
 
     return { endpoints, total: filteredTotal || 1 }; // prevent division by zero
-  }, [requests, selectedBaseUrl]);
+  }, [requests, selectedBaseUrl, searchQuery]);
 
 
   const pieData = {
@@ -156,7 +159,7 @@ const AnalyticsTab = () => {
         </div>
       </div>
 
-      <div className="grid-2">
+      <div className="grid-2" style={{ marginBottom: '32px' }}>
         <div className="glass-panel" style={{ height: '350px' }}>
           <h3>Request Volume</h3>
           <div style={{ height: '280px' }}>
@@ -164,55 +167,71 @@ const AnalyticsTab = () => {
           </div>
         </div>
         
-        <div className="grid-2">
-          <div className="glass-panel" style={{ height: '350px' }}>
-            <h3>Success vs Error</h3>
-            <div style={{ height: '280px', display: 'flex', justifyContent: 'center' }}>
-              <Pie data={pieData} options={{ maintainAspectRatio: false, color: '#94a3b8' }} />
-            </div>
+        <div className="glass-panel" style={{ height: '350px' }}>
+          <h3>Success vs Error</h3>
+          <div style={{ height: '280px', display: 'flex', justifyContent: 'center' }}>
+            <Pie data={pieData} options={{ maintainAspectRatio: false, color: '#94a3b8' }} />
           </div>
-          
-          <div className="glass-panel" style={{ height: '350px', overflowY: 'auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ margin: 0 }}>Top Endpoints</h3>
-              <select 
-                value={selectedBaseUrl} 
-                onChange={e => setSelectedBaseUrl(e.target.value)}
-                style={{ 
-                  background: 'rgba(0,0,0,0.2)', 
-                  border: '1px solid var(--border-color)', 
-                  color: 'var(--text-main)', 
-                  padding: '4px 8px', 
-                  borderRadius: '4px',
-                  fontSize: '0.85rem',
-                  outline: 'none',
-                  maxWidth: '120px'
-                }}
-              >
-                {baseUrls.map(url => (
-                  <option key={url} value={url}>{url}</option>
-                ))}
-              </select>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '20px' }}>
-              {filteredEndpointsData.endpoints.map(ep => (
-                <div key={ep.name} className="endpoint-item">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.95rem' }}>
-                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '75%', fontWeight: 500, color: 'var(--text-main)' }} title={ep.name}>{ep.name}</span>
-                    <span style={{ color: 'var(--text-main)', background: 'rgba(255,255,255,0.1)', padding: '2px 8px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 600 }}>{ep.count} hits</span>
-                  </div>
-                  <div className="progress-bar-bg">
-                    <div className="progress-bar-fill" style={{ width: `${(ep.count / filteredEndpointsData.total) * 100}%` }} />
-                  </div>
-                </div>
+        </div>
+      </div>
+
+      <div className="glass-panel" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', position: 'sticky', top: 0, zIndex: 10, background: 'var(--panel-bg)', paddingBottom: '12px' }}>
+          <h3 style={{ margin: 0 }}>Top Endpoints</h3>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <input 
+              type="text" 
+              placeholder="Search endpoints..." 
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              style={{
+                background: 'rgba(0,0,0,0.2)', 
+                border: '1px solid var(--border-color)', 
+                color: 'var(--text-main)', 
+                padding: '6px 12px', 
+                borderRadius: '6px',
+                fontSize: '0.85rem',
+                outline: 'none',
+                minWidth: '200px'
+              }}
+            />
+            <select 
+              value={selectedBaseUrl} 
+              onChange={e => setSelectedBaseUrl(e.target.value)}
+              style={{ 
+                background: 'rgba(0,0,0,0.2)', 
+                border: '1px solid var(--border-color)', 
+                color: 'var(--text-main)', 
+                padding: '6px 12px', 
+                borderRadius: '6px',
+                fontSize: '0.85rem',
+                outline: 'none',
+                minWidth: '150px'
+              }}
+            >
+              {baseUrls.map(url => (
+                <option key={url} value={url}>{url}</option>
               ))}
-              {filteredEndpointsData.endpoints.length === 0 && (
-                <div style={{ color: 'var(--text-muted)', textAlign: 'center', marginTop: '40px', fontStyle: 'italic' }}>
-                  No requests recorded yet.
-                </div>
-              )}
-            </div>
+            </select>
           </div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {filteredEndpointsData.endpoints.map(ep => (
+            <div key={ep.name} className="endpoint-item" style={{ background: 'rgba(0,0,0,0.1)', padding: '12px 16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '0.95rem' }}>
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '80%', fontWeight: 500, color: 'var(--text-main)' }} title={ep.name}>{ep.name}</span>
+                <span style={{ background: 'rgba(139, 92, 246, 0.2)', color: '#a78bfa', padding: '2px 10px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 600 }}>{ep.count} hits</span>
+              </div>
+              <div className="progress-bar-bg" style={{ height: '6px' }}>
+                <div className="progress-bar-fill" style={{ width: `${(ep.count / filteredEndpointsData.total) * 100}%` }} />
+              </div>
+            </div>
+          ))}
+          {filteredEndpointsData.endpoints.length === 0 && (
+            <div style={{ color: 'var(--text-muted)', textAlign: 'center', marginTop: '40px', fontStyle: 'italic', gridColumn: '1 / -1' }}>
+              No requests recorded yet.
+            </div>
+          )}
         </div>
       </div>
     </div>

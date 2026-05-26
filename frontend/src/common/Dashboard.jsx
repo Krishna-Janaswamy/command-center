@@ -59,9 +59,9 @@ const Dashboard = () => {
 
         <div className="glass-panel" style={{ transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', cursor: 'pointer' }} onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-6px)'; e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.2)'; e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.4)'; }} onMouseOut={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'var(--glass-shadow)'; e.currentTarget.style.borderColor = 'var(--border-color)'; }} onClick={() => navigate('/service-virtualization/requests')}>
           <div style={{ fontSize: '2.5rem', marginBottom: '20px' }}>📡</div>
-          <h3 style={{ marginBottom: '12px', fontSize: '1.3rem' }}>Traffic Capture</h3>
+          <h3 style={{ marginBottom: '12px', fontSize: '1.3rem' }}>Request Capture</h3>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', lineHeight: '1.6' }}>
-            Auto-record all proxy requests. Convert real traffic into reusable, version-controlled stubs without writing a single line of JSON.
+            Auto-record all requests. Convert real requests into reusable, version-controlled stubs without writing a single line of JSON.
           </p>
         </div>
       </div>

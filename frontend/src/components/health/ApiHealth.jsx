@@ -7,6 +7,7 @@ const ApiHealth = () => {
   const [healthStatus, setHealthStatus] = useState({});
   const [filter, setFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
+  const [lastRefreshed, setLastRefreshed] = useState(null);
 
   useEffect(() => {
     let intervalId;
@@ -24,11 +25,11 @@ const ApiHealth = () => {
   }, []);
 
   const checkAll = async (apiList) => {
-    for (let api of apiList) {
-      if (api.baseUrl || api.endpoint) {
-        checkHealth(api);
-      }
-    }
+    const promises = apiList
+      .filter(api => api.baseUrl || api.endpoint)
+      .map(api => checkHealth(api));
+    await Promise.all(promises);
+    setLastRefreshed(new Date());
   };
 
   const checkHealth = async (api) => {
@@ -75,7 +76,14 @@ const ApiHealth = () => {
   return (
     <div className="fade-in">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <h1>API Health Dashboard</h1>
+        <div>
+          <h1 style={{ margin: 0 }}>API Health Dashboard</h1>
+          {lastRefreshed && (
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '6px', fontWeight: 500 }}>
+              Last refreshed: {lastRefreshed.toLocaleTimeString()}
+            </div>
+          )}
+        </div>
         <button className="btn" onClick={() => checkAll(filteredApis)}>Refresh All</button>
       </div>
 
