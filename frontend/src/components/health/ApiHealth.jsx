@@ -68,7 +68,8 @@ const ApiHealth = () => {
     if (filter) {
       const f = filter.toLowerCase();
       return (api.name && api.name.toLowerCase().includes(f)) || 
-             (api.endpoint && api.endpoint.toLowerCase().includes(f));
+             (api.endpoint && api.endpoint.toLowerCase().includes(f)) ||
+             (api.baseUrl && api.baseUrl.toLowerCase().includes(f));
     }
     return true;
   });

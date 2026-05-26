@@ -38,7 +38,9 @@ const RequestsTab = () => {
     if (categoryFilter !== 'All' && r.category !== categoryFilter) return false;
     if (filter) {
       const f = filter.toLowerCase();
-      return r.url.toLowerCase().includes(f) || r.method.toLowerCase().includes(f);
+      return r.url.toLowerCase().includes(f) || 
+             r.method.toLowerCase().includes(f) || 
+             (r.baseUrl && r.baseUrl.toLowerCase().includes(f));
     }
     return true;
   });

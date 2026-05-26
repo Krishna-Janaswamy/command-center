@@ -10,6 +10,7 @@ const ApiRegistry = () => {
   const [expandedApi, setExpandedApi] = useState(null);
   const [responses, setResponses] = useState({});
   const [loadingResponse, setLoadingResponse] = useState({});
+  const [filter, setFilter] = useState('');
   const navigate = useNavigate();
 
   const toggleExpand = async (id) => {
@@ -60,13 +61,26 @@ const ApiRegistry = () => {
     }
   };
 
+  const filteredApis = apis.filter(api => {
+    if (filter) {
+      const f = filter.toLowerCase();
+      return (api.name && api.name.toLowerCase().includes(f)) ||
+             (api.endpoint && api.endpoint.toLowerCase().includes(f)) ||
+             (api.baseUrl && api.baseUrl.toLowerCase().includes(f));
+    }
+    return true;
+  });
+
   return (
     <div className="fade-in">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <h1>API Registry</h1>
-        <button className="btn" onClick={() => { setEditApi(null); setShowModal(true); }}>
-          + Register API
-        </button>
+        <div style={{ display: 'flex', gap: '16px' }}>
+          <input className="form-control" placeholder="Search APIs..." value={filter} onChange={e => setFilter(e.target.value)} style={{ width: '250px' }} />
+          <button className="btn" onClick={() => { setEditApi(null); setShowModal(true); }}>
+            + Register API
+          </button>
+        </div>
       </div>
 
       <div className="glass-panel">
@@ -85,7 +99,7 @@ const ApiRegistry = () => {
             </tr>
           </thead>
           <tbody>
-            {apis.map(api => (
+            {filteredApis.map(api => (
               <React.Fragment key={api.id}>
                 <tr style={{ cursor: 'pointer', background: expandedApi === api.id ? 'rgba(0,0,0,0.03)' : 'transparent' }} onClick={() => toggleExpand(api.id)}>
                   <td style={{ color: 'var(--text-muted)' }}>
@@ -163,9 +177,9 @@ const ApiRegistry = () => {
                 )}
               </React.Fragment>
             ))}
-            {apis.length === 0 && (
+            {filteredApis.length === 0 && (
               <tr>
-                <td colSpan="8" style={{ textAlign: 'center', color: 'var(--text-muted)' }}>No APIs registered yet.</td>
+                <td colSpan="8" style={{ textAlign: 'center', color: 'var(--text-muted)' }}>No APIs found matching your filters.</td>
               </tr>
             )}
           </tbody>

@@ -12,6 +12,7 @@ const StubsTab = () => {
   const [showVersionForm, setShowVersionForm] = useState(false);
   const [editStub, setEditStub] = useState(null);
   const [editVersion, setEditVersion] = useState(null);
+  const [filter, setFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
   const navigate = useNavigate();
 
@@ -68,7 +69,16 @@ const StubsTab = () => {
     }
   };
 
-  const filteredStubs = categoryFilter === 'All' ? stubs : stubs.filter(s => s.category === categoryFilter);
+  const filteredStubs = stubs.filter(s => {
+    if (categoryFilter !== 'All' && s.category !== categoryFilter) return false;
+    if (filter) {
+      const f = filter.toLowerCase();
+      return (s.name && s.name.toLowerCase().includes(f)) ||
+             (s.endpoint && s.endpoint.toLowerCase().includes(f)) ||
+             (s.baseUrl && s.baseUrl.toLowerCase().includes(f));
+    }
+    return true;
+  });
 
   return (
     <div className="fade-in" style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '24px', height: 'calc(100vh - 120px)' }}>
@@ -78,8 +88,9 @@ const StubsTab = () => {
           <h2>Stubs ({filteredStubs.length})</h2>
           <button className="btn" onClick={() => { setEditStub(null); setShowForm(true); }}>+ New Stub</button>
         </div>
-        <div style={{ marginBottom: '16px' }}>
-          <select className="form-control" value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)}>
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+          <input className="form-control" placeholder="Search stubs..." value={filter} onChange={e => setFilter(e.target.value)} />
+          <select className="form-control" style={{ width: '120px' }} value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)}>
             <option>All</option><option>Claims</option><option>SBI</option><option>GW</option><option>Other</option>
           </select>
         </div>
