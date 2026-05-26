@@ -26,13 +26,14 @@ public class ApiRegistryService {
         return jdbc.query(sql.toString(), (rs, rowNum) -> {
             ApiRegistryEntry api = new ApiRegistryEntry();
             api.setId(rs.getString("id"));
-            api.setFunctionName(rs.getString("functionName"));
+            api.setName(rs.getString("name"));
+            api.setVersion(rs.getString("version"));
             api.setMethod(rs.getString("method"));
             api.setEndpoint(rs.getString("endpoint"));
             api.setCategory(rs.getString("category"));
             api.setEnvironment(rs.getString("environment"));
             api.setDescription(rs.getString("description"));
-            api.setHealthCheckUrl(rs.getString("healthCheckUrl"));
+            api.setBaseUrl(rs.getString("baseUrl"));
             api.setHealthCheckHeaders(rs.getString("healthCheckHeaders"));
             api.setHealthCheckBody(rs.getString("healthCheckBody"));
             api.setHealthCheckParams(rs.getString("healthCheckParams"));
@@ -49,13 +50,14 @@ public class ApiRegistryService {
             ApiRegistryEntry api = new ApiRegistryEntry();
             api.setId(rs.getString("id"));
             // (populate fields)
-            api.setFunctionName(rs.getString("functionName"));
+            api.setName(rs.getString("name"));
+            api.setVersion(rs.getString("version"));
             api.setMethod(rs.getString("method"));
             api.setEndpoint(rs.getString("endpoint"));
             api.setCategory(rs.getString("category"));
             api.setEnvironment(rs.getString("environment"));
             api.setDescription(rs.getString("description"));
-            api.setHealthCheckUrl(rs.getString("healthCheckUrl"));
+            api.setBaseUrl(rs.getString("baseUrl"));
             api.setHealthCheckHeaders(rs.getString("healthCheckHeaders"));
             api.setHealthCheckBody(rs.getString("healthCheckBody"));
             api.setHealthCheckParams(rs.getString("healthCheckParams"));
@@ -72,14 +74,14 @@ public class ApiRegistryService {
         if (api.getId() == null || api.getId().isEmpty()) {
             api.setId(UUID.randomUUID().toString());
         }
-        jdbc.update("INSERT INTO api_registry (id, functionName, method, endpoint, category, environment, description, healthCheckUrl, healthCheckHeaders, healthCheckBody, healthCheckParams, retryOn500, isCustom, ownerGroup) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                api.getId(), api.getFunctionName(), api.getMethod(), api.getEndpoint(), api.getCategory(), api.getEnvironment(), api.getDescription(), api.getHealthCheckUrl(), api.getHealthCheckHeaders(), api.getHealthCheckBody(), api.getHealthCheckParams(), api.getRetryOn500(), api.isCustom() ? 1 : 0, api.getOwnerGroup());
+        jdbc.update("INSERT INTO api_registry (id, name, version, method, endpoint, category, environment, description, baseUrl, healthCheckHeaders, healthCheckBody, healthCheckParams, retryOn500, isCustom, ownerGroup) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                api.getId(), api.getName(), api.getVersion() == null ? "v1" : api.getVersion(), api.getMethod(), api.getEndpoint(), api.getCategory(), api.getEnvironment(), api.getDescription(), api.getBaseUrl(), api.getHealthCheckHeaders(), api.getHealthCheckBody(), api.getHealthCheckParams(), api.getRetryOn500(), api.isCustom() ? 1 : 0, api.getOwnerGroup());
         return getApi(api.getId());
     }
 
     public void updateApi(String id, ApiRegistryEntry api) {
-        jdbc.update("UPDATE api_registry SET functionName=?, method=?, endpoint=?, category=?, environment=?, description=?, healthCheckUrl=?, healthCheckHeaders=?, healthCheckBody=?, healthCheckParams=?, retryOn500=?, isCustom=? WHERE id=?",
-                api.getFunctionName(), api.getMethod(), api.getEndpoint(), api.getCategory(), api.getEnvironment(), api.getDescription(), api.getHealthCheckUrl(), api.getHealthCheckHeaders(), api.getHealthCheckBody(), api.getHealthCheckParams(), api.getRetryOn500(), api.isCustom() ? 1 : 0, id);
+        jdbc.update("UPDATE api_registry SET name=?, version=?, method=?, endpoint=?, category=?, environment=?, description=?, baseUrl=?, healthCheckHeaders=?, healthCheckBody=?, healthCheckParams=?, retryOn500=?, isCustom=? WHERE id=?",
+                api.getName(), api.getVersion() == null ? "v1" : api.getVersion(), api.getMethod(), api.getEndpoint(), api.getCategory(), api.getEnvironment(), api.getDescription(), api.getBaseUrl(), api.getHealthCheckHeaders(), api.getHealthCheckBody(), api.getHealthCheckParams(), api.getRetryOn500(), api.isCustom() ? 1 : 0, id);
     }
 
     public void deleteApi(String id) {

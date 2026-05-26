@@ -7,7 +7,7 @@ const EndpointCard = ({ api, status, onCheck }) => {
 
   const getStatusColor = (s) => {
     if (!s) return 'var(--text-muted)';
-    return s.status === 'UP' ? 'var(--success)' : 'var(--danger)';
+    return s.status === 'Up and Stable' ? 'var(--success)' : 'var(--danger)';
   };
 
   return (
@@ -16,8 +16,8 @@ const EndpointCard = ({ api, status, onCheck }) => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: getStatusColor(status) }} />
           <div>
-            <div style={{ fontWeight: 600, fontSize: '1.1rem', color: 'var(--text-main)' }}>{api.functionName}</div>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{api.healthCheckUrl || api.endpoint}</div>
+            <div style={{ fontWeight: 600, fontSize: '1.1rem', color: 'var(--text-main)' }}>{api.name}</div>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{(api.baseUrl || '') + (api.endpoint || '')}</div>
           </div>
           <span className="badge badge-info" style={{ marginLeft: '12px' }}>{api.method}</span>
           <span className="badge badge-primary">{api.category}</span>
@@ -25,12 +25,12 @@ const EndpointCard = ({ api, status, onCheck }) => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           {status && (
             <>
+              <span style={{ fontSize: '0.85rem', color: getStatusColor(status), fontWeight: 500, marginRight: '4px' }}>{status.status}</span>
               {status.statusCode && <span className="badge" style={{ background: 'rgba(255,255,255,0.1)' }}>{status.statusCode}</span>}
               {status.responseTime && <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{status.responseTime}ms</span>}
             </>
           )}
           <button className="btn-secondary" style={{ padding: '4px 8px', fontSize: '0.8rem', borderRadius: '4px', background: 'rgba(59, 130, 246, 0.1)', color: '#60a5fa', border: '1px solid rgba(59, 130, 246, 0.2)' }} onClick={(e) => { e.stopPropagation(); navigate('/service-virtualization/api', { state: { request: api } }); }}>Test</button>
-          <button className="btn-secondary" style={{ padding: '4px 8px', fontSize: '0.8rem', borderRadius: '4px' }} onClick={(e) => { e.stopPropagation(); onCheck(); }}>Check</button>
           <span style={{ color: 'var(--text-muted)', transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>▼</span>
         </div>
       </div>

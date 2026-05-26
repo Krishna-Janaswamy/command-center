@@ -231,6 +231,7 @@ tr:hover td {
 /* Grid layout */
 .grid-2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; }
 .grid-3 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr); gap: 24px; }
+.grid-4 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr); gap: 24px; }
 
 /* Tabs */
 .tabs {
@@ -321,4 +322,55 @@ pre {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
+}
+
+/* Premium Analytics Styles */
+.glass-panel-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.glass-panel-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 20px -8px rgba(0, 0, 0, 0.3), 0 0 15px rgba(139, 92, 246, 0.1);
+  border-color: rgba(139, 92, 246, 0.3);
+}
+
+.text-gradient {
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+.gradient-primary {
+  background-image: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+}
+.gradient-success {
+  background-image: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+}
+.gradient-info {
+  background-image: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+}
+
+.progress-bar-bg {
+  width: 100%;
+  height: 8px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
+}
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #8b5cf6 0%, #a78bfa 100%);
+  border-radius: 4px;
+  box-shadow: 0 0 8px rgba(139, 92, 246, 0.5);
+  transition: width 1s ease-out;
+}
+.endpoint-item {
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.02);
+  transition: background 0.2s;
+}
+.endpoint-item:hover {
+  background: rgba(255,255,255,0.05);
 }

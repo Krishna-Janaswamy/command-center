@@ -4,8 +4,10 @@ public class Stub {
     private String id;
     private String name;
     private String method;
-    private String urlPattern;
-    private String targetHost;
+    private String endpoint;
+    private String baseUrl;
+    private String environment;
+    private String description;
     private String requestMatcher;
     private int responseStatus;
     private String responseBody;
@@ -29,11 +31,17 @@ public class Stub {
     public String getMethod() { return method; }
     public void setMethod(String method) { this.method = method; }
 
-    public String getUrlPattern() { return urlPattern; }
-    public void setUrlPattern(String urlPattern) { this.urlPattern = urlPattern; }
+    public String getEndpoint() { return endpoint; }
+    public void setEndpoint(String endpoint) { this.endpoint = endpoint; }
 
-    public String getTargetHost() { return targetHost; }
-    public void setTargetHost(String targetHost) { this.targetHost = targetHost; }
+    public String getEnvironment() { return environment; }
+    public void setEnvironment(String environment) { this.environment = environment; }
+
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+
+    public String getBaseUrl() { return baseUrl; }
+    public void setBaseUrl(String baseUrl) { this.baseUrl = baseUrl; }
 
     public String getRequestMatcher() { return requestMatcher; }
     public void setRequestMatcher(String requestMatcher) { this.requestMatcher = requestMatcher; }

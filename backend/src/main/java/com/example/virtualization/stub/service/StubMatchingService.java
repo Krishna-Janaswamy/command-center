@@ -29,7 +29,7 @@ public class StubMatchingService {
             if (!methodMatches) continue;
 
             boolean pathMatches = false;
-            String pattern = stub.getUrlPattern();
+            String pattern = stub.getEndpoint();
             if (pattern != null) {
                 if (pattern.startsWith("^") || pattern.contains(".*")) {
                     pathMatches = Pattern.compile(pattern).matcher(url).find();
@@ -42,8 +42,8 @@ public class StubMatchingService {
 
             if (!pathMatches) continue;
 
-            if (targetHost != null && !targetHost.isEmpty() && stub.getTargetHost() != null && !stub.getTargetHost().isEmpty()) {
-                if (!stub.getTargetHost().equalsIgnoreCase(targetHost)) continue;
+            if (targetHost != null && !targetHost.isEmpty() && stub.getBaseUrl() != null && !stub.getBaseUrl().isEmpty()) {
+                if (!stub.getBaseUrl().equalsIgnoreCase(targetHost)) continue;
             }
 
             return stub;

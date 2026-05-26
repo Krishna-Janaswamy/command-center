@@ -54,6 +54,8 @@ const ApiRegistry = () => {
               <th style={{ width: '40px' }}></th>
               <th>Method</th>
               <th>Name</th>
+
+              <th>Base URL</th>
               <th>Endpoint</th>
               <th>Category</th>
               <th>Environment</th>
@@ -72,7 +74,9 @@ const ApiRegistry = () => {
                       {api.method}
                     </span>
                   </td>
-                  <td style={{ fontWeight: 500 }}>{api.functionName}</td>
+                  <td style={{ fontWeight: 500 }}>{api.name}</td>
+
+                  <td>{api.baseUrl}</td>
                   <td>{api.endpoint}</td>
                   <td><span className="badge badge-primary">{api.category}</span></td>
                   <td>{api.environment}</td>
@@ -104,7 +108,7 @@ const ApiRegistry = () => {
                 </tr>
                 {expandedApi === api.id && (
                   <tr style={{ background: 'rgba(0,0,0,0.2)' }}>
-                    <td colSpan="7" style={{ padding: '24px' }}>
+                    <td colSpan="8" style={{ padding: '24px' }}>
                       <div className="grid-2">
                         <div>
                           <div style={{ marginBottom: '12px' }}>
@@ -119,8 +123,8 @@ const ApiRegistry = () => {
                         <div>
                           <div style={{ marginBottom: '12px' }}>
                             <strong style={{ color: 'var(--text-muted)', fontSize: '0.85rem', display: 'block', marginBottom: '4px' }}>Base URL</strong>
-                            <div style={{ fontFamily: 'monospace', fontSize: '0.9rem', color: api.healthCheckUrl ? 'var(--text-main)' : 'var(--text-muted)' }}>
-                              {api.healthCheckUrl || 'Not configured'}
+                            <div style={{ fontFamily: 'monospace', fontSize: '0.9rem', color: api.baseUrl ? 'var(--text-main)' : 'var(--text-muted)' }}>
+                              {api.baseUrl || 'Not configured'}
                             </div>
                           </div>
                           <div style={{ marginBottom: '12px' }}>
@@ -142,7 +146,7 @@ const ApiRegistry = () => {
             ))}
             {apis.length === 0 && (
               <tr>
-                <td colSpan="7" style={{ textAlign: 'center', color: 'var(--text-muted)' }}>No APIs registered yet.</td>
+                <td colSpan="8" style={{ textAlign: 'center', color: 'var(--text-muted)' }}>No APIs registered yet.</td>
               </tr>
             )}
           </tbody>

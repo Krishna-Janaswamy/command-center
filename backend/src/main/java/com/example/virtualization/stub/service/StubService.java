@@ -22,8 +22,10 @@ public class StubService {
             stub.setId(rs.getString("id"));
             stub.setName(rs.getString("name"));
             stub.setMethod(rs.getString("method"));
-            stub.setUrlPattern(rs.getString("urlPattern"));
-            stub.setTargetHost(rs.getString("targetHost"));
+            stub.setEndpoint(rs.getString("endpoint"));
+            stub.setBaseUrl(rs.getString("baseUrl"));
+            stub.setEnvironment(rs.getString("environment"));
+            stub.setDescription(rs.getString("description"));
             stub.setRequestMatcher(rs.getString("requestMatcher"));
             stub.setResponseStatus(rs.getInt("responseStatus"));
             stub.setResponseBody(rs.getString("responseBody"));
@@ -44,8 +46,10 @@ public class StubService {
             stub.setId(rs.getString("id"));
             stub.setName(rs.getString("name"));
             stub.setMethod(rs.getString("method"));
-            stub.setUrlPattern(rs.getString("urlPattern"));
-            stub.setTargetHost(rs.getString("targetHost"));
+            stub.setEndpoint(rs.getString("endpoint"));
+            stub.setBaseUrl(rs.getString("baseUrl"));
+            stub.setEnvironment(rs.getString("environment"));
+            stub.setDescription(rs.getString("description"));
             stub.setRequestMatcher(rs.getString("requestMatcher"));
             stub.setResponseStatus(rs.getInt("responseStatus"));
             stub.setResponseBody(rs.getString("responseBody"));
@@ -64,11 +68,11 @@ public class StubService {
     public Stub createOrUpdateStub(Stub stub) {
         if (stub.getId() == null || stub.getId().isEmpty()) {
             stub.setId(UUID.randomUUID().toString());
-            jdbc.update("INSERT INTO stubs (id, name, method, urlPattern, targetHost, requestMatcher, responseStatus, responseBody, responseHeaders, delay, enabled, category, version, ownerGroup) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    stub.getId(), stub.getName(), stub.getMethod(), stub.getUrlPattern(), stub.getTargetHost(), stub.getRequestMatcher(), stub.getResponseStatus(), stub.getResponseBody(), stub.getResponseHeaders(), stub.getDelay(), stub.isEnabled() ? 1 : 0, stub.getCategory(), stub.getVersion(), stub.getOwnerGroup());
+            jdbc.update("INSERT INTO stubs (id, name, method, endpoint, baseUrl, environment, description, requestMatcher, responseStatus, responseBody, responseHeaders, delay, enabled, category, version, ownerGroup) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    stub.getId(), stub.getName(), stub.getMethod(), stub.getEndpoint(), stub.getBaseUrl(), stub.getEnvironment() == null ? "Dev" : stub.getEnvironment(), stub.getDescription(), stub.getRequestMatcher(), stub.getResponseStatus(), stub.getResponseBody(), stub.getResponseHeaders(), stub.getDelay(), stub.isEnabled() ? 1 : 0, stub.getCategory(), stub.getVersion() == null ? "v1" : stub.getVersion(), stub.getOwnerGroup());
         } else {
-            jdbc.update("UPDATE stubs SET name=?, method=?, urlPattern=?, targetHost=?, requestMatcher=?, responseStatus=?, responseBody=?, responseHeaders=?, delay=?, enabled=?, category=?, version=? WHERE id=?",
-                    stub.getName(), stub.getMethod(), stub.getUrlPattern(), stub.getTargetHost(), stub.getRequestMatcher(), stub.getResponseStatus(), stub.getResponseBody(), stub.getResponseHeaders(), stub.getDelay(), stub.isEnabled() ? 1 : 0, stub.getCategory(), stub.getVersion(), stub.getId());
+            jdbc.update("UPDATE stubs SET name=?, method=?, endpoint=?, baseUrl=?, environment=?, description=?, requestMatcher=?, responseStatus=?, responseBody=?, responseHeaders=?, delay=?, enabled=?, category=?, version=? WHERE id=?",
+                    stub.getName(), stub.getMethod(), stub.getEndpoint(), stub.getBaseUrl(), stub.getEnvironment() == null ? "Dev" : stub.getEnvironment(), stub.getDescription(), stub.getRequestMatcher(), stub.getResponseStatus(), stub.getResponseBody(), stub.getResponseHeaders(), stub.getDelay(), stub.isEnabled() ? 1 : 0, stub.getCategory(), stub.getVersion() == null ? "v1" : stub.getVersion(), stub.getId());
         }
         return getStub(stub.getId());
     }

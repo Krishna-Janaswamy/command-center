@@ -12,7 +12,6 @@ const APITesterTab = () => {
   const [headers, setHeaders] = useState('{\n  "Content-Type": "application/json"\n}');
   const [response, setResponse] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [useMock, setUseMock] = useState(false); // Can be driven by global toggle if preferred
   const [curlInput, setCurlInput] = useState('');
 
   const location = useLocation();
@@ -42,7 +41,7 @@ const APITesterTab = () => {
     if (location.state?.request) {
       const req = location.state.request;
       
-      let targetBaseUrl = req.healthCheckUrl || req.baseUrl || req.url || '';
+      let targetBaseUrl = req.baseUrl || req.url || '';
       let targetEndpoint = req.endpoint || '/';
 
       try {
@@ -103,9 +102,6 @@ const APITesterTab = () => {
     if (baseUrl) {
       parsedHeaders['X-Target-Host'] = baseUrl;
     }
-    if (useMock) {
-      parsedHeaders['X-Use-Toggle'] = 'on';
-    }
     parsedHeaders['X-Api-Category'] = category;
 
     const requestData = {
@@ -152,6 +148,10 @@ const APITesterTab = () => {
               <label>Base URL (Upstream Domain)</label>
               <input className="form-control" placeholder="https://api.example.com" value={baseUrl} onChange={e => setBaseUrl(e.target.value)} />
             </div>
+            <div className="form-group">
+              <label>Endpoint Path</label>
+              <input className="form-control" placeholder="/v1/users" value={endpoint} onChange={e => setEndpoint(e.target.value)} required />
+            </div>
             <div className="grid-2">
               <div className="form-group">
                 <label>HTTP Method</label>
@@ -167,10 +167,6 @@ const APITesterTab = () => {
               </div>
             </div>
             <div className="form-group">
-              <label>Endpoint Path</label>
-              <input className="form-control" placeholder="/v1/users" value={endpoint} onChange={e => setEndpoint(e.target.value)} required />
-            </div>
-            <div className="form-group">
               <label>Request Headers (JSON)</label>
               <textarea className="form-control" value={headers} onChange={e => setHeaders(e.target.value)} rows="3" />
             </div>
@@ -181,11 +177,7 @@ const APITesterTab = () => {
               </div>
             )}
             
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '24px' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: 'var(--text-muted)' }}>
-                <input type="checkbox" checked={useMock} onChange={e => setUseMock(e.target.checked)} />
-                Force Live (Bypass Mocks)
-              </label>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', marginTop: '24px' }}>
               <button type="submit" className="btn" disabled={loading}>
                 {loading ? 'Sending...' : 'Send Request'}
               </button>

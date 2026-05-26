@@ -15,6 +15,7 @@ public class Request {
     private boolean isRecorded;
     private String category;
     private String ownerGroup;
+    private String source;
 
     public Request() {}
 
@@ -60,4 +61,7 @@ public class Request {
 
     public String getOwnerGroup() { return ownerGroup; }
     public void setOwnerGroup(String ownerGroup) { this.ownerGroup = ownerGroup; }
+
+    public String getSource() { return source; }
+    public void setSource(String source) { this.source = source; }
 }

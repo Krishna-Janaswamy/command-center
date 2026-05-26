@@ -2,13 +2,14 @@ package com.example.virtualization.model;
 
 public class ApiRegistryEntry {
     private String id;
-    private String functionName;
+    private String name;
+    private String version;
     private String method;
     private String endpoint;
     private String category;
     private String environment;
     private String description;
-    private String healthCheckUrl;
+    private String baseUrl;
     private String healthCheckHeaders;
     private String healthCheckBody;
     private String healthCheckParams;
@@ -23,8 +24,11 @@ public class ApiRegistryEntry {
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 
-    public String getFunctionName() { return functionName; }
-    public void setFunctionName(String functionName) { this.functionName = functionName; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public String getVersion() { return version; }
+    public void setVersion(String version) { this.version = version; }
 
     public String getMethod() { return method; }
     public void setMethod(String method) { this.method = method; }
@@ -41,8 +45,8 @@ public class ApiRegistryEntry {
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
 
-    public String getHealthCheckUrl() { return healthCheckUrl; }
-    public void setHealthCheckUrl(String healthCheckUrl) { this.healthCheckUrl = healthCheckUrl; }
+    public String getBaseUrl() { return baseUrl; }
+    public void setBaseUrl(String baseUrl) { this.baseUrl = baseUrl; }
 
     public String getHealthCheckHeaders() { return healthCheckHeaders; }
     public void setHealthCheckHeaders(String healthCheckHeaders) { this.healthCheckHeaders = healthCheckHeaders; }

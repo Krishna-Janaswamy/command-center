@@ -48,7 +48,7 @@ const RequestsTab = () => {
       {/* Left Panel */}
       <div className="glass-panel" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <h2>Traffic ({filtered.length})</h2>
+          <h2>Requests ({filtered.length})</h2>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button className="btn-secondary" style={{ padding: '6px 12px' }} onClick={loadRequests}>↻</button>
             <button className="btn-danger" style={{ padding: '6px 12px' }} onClick={handleClear}>Clear</button>
@@ -76,8 +76,15 @@ const RequestsTab = () => {
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                   <span className={`badge badge-${req.method === 'GET' ? 'info' : 'success'}`}>{req.method}</span>
                   <span className={`badge badge-${(req.status >= 200 && req.status < 300) ? 'success' : 'danger'}`}>{req.status}</span>
+                  {req.source && (
+                    <span className={`badge ${req.source.includes('stub') ? 'badge-primary' : 'badge-warning'}`} style={{ textTransform: 'uppercase', fontSize: '0.65rem' }}>
+                      {req.source}
+                    </span>
+                  )}
                 </div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{new Date(req.timestamp).toLocaleTimeString()}</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                  {new Date(req.timestamp && !req.timestamp.endsWith('Z') ? req.timestamp.replace(' ', 'T') + 'Z' : req.timestamp).toLocaleTimeString()}
+                </div>
               </div>
               <div style={{ fontSize: '0.85rem', color: 'var(--text-main)', wordBreak: 'break-all', marginBottom: '4px' }}>
                 {req.endpoint}

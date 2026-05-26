@@ -107,7 +107,8 @@ const StubsTab = () => {
                   {stub.enabled ? 'Enabled' : 'Disabled'}
                 </button>
               </div>
-              <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{stub.urlPattern}</div>
+              {stub.baseUrl && <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Base URL: {stub.baseUrl}</div>}
+              <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Endpoint: {stub.endpoint}</div>
             </div>
           ))}
         </div>
@@ -120,15 +121,17 @@ const StubsTab = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
               <div>
                 <h2>{selectedStub.name}</h2>
-                <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '8px' }}>{selectedStub.method} {selectedStub.urlPattern}</div>
-                {selectedStub.targetHost && <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Host: {selectedStub.targetHost}</div>}
+                {selectedStub.baseUrl && <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '8px' }}>Base URL: {selectedStub.baseUrl}</div>}
+                <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '8px' }}>Endpoint: {selectedStub.method} {selectedStub.endpoint}</div>
+                {selectedStub.environment && <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Env: {selectedStub.environment}</div>}
+                {selectedStub.description && <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Desc: {selectedStub.description}</div>}
               </div>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button 
                   className="btn-secondary" 
                   title="Test Stub in API Tester"
                   style={{ padding: '6px 12px', fontSize: '0.85rem', borderRadius: '6px', background: 'rgba(59, 130, 246, 0.1)', color: '#60a5fa', border: '1px solid rgba(59, 130, 246, 0.2)' }} 
-                  onClick={() => navigate('/service-virtualization/api', { state: { request: { endpoint: selectedStub.urlPattern, method: selectedStub.method, category: selectedStub.category, baseUrl: selectedStub.targetHost } } })}>
+                  onClick={() => navigate('/service-virtualization/api', { state: { request: { endpoint: selectedStub.endpoint, method: selectedStub.method, category: selectedStub.category, baseUrl: selectedStub.baseUrl } } })}>
                   🧪 Test
                 </button>
                 <button 

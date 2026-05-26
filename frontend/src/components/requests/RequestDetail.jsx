@@ -45,7 +45,7 @@ const RequestDetail = ({ request, onClose, onDelete }) => {
         </div>
       </div>
 
-      <div className="grid-3" style={{ borderTop: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)', padding: '16px 0' }}>
+      <div className="grid-4" style={{ borderTop: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)', padding: '16px 0' }}>
         <div>
           <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Status</div>
           <div style={{ fontWeight: 600, color: (request.status >= 200 && request.status < 300) ? 'var(--success)' : 'var(--danger)' }}>
@@ -54,11 +54,23 @@ const RequestDetail = ({ request, onClose, onDelete }) => {
         </div>
         <div>
           <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Timestamp</div>
-          <div>{new Date(request.timestamp).toLocaleString()}</div>
+          <div>{new Date(request.timestamp && !request.timestamp.endsWith('Z') ? request.timestamp.replace(' ', 'T') + 'Z' : request.timestamp).toLocaleString()}</div>
         </div>
         <div>
           <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Category</div>
           <div><span className="badge badge-primary">{request.category}</span></div>
+        </div>
+        <div>
+          <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Source</div>
+          <div>
+            {request.source ? (
+              <span className={`badge ${request.source.includes('stub') ? 'badge-primary' : 'badge-warning'}`} style={{ textTransform: 'uppercase' }}>
+                {request.source}
+              </span>
+            ) : (
+              <span style={{ color: 'var(--text-muted)' }}>N/A</span>
+            )}
+          </div>
         </div>
       </div>
 

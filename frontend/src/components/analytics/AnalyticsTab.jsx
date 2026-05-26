@@ -19,6 +19,7 @@ ChartJS.register(
 
 const AnalyticsTab = () => {
   const [requests, setRequests] = useState([]);
+  const [selectedBaseUrl, setSelectedBaseUrl] = useState('All');
   
   useEffect(() => {
     requestApi.getAll().then(res => setRequests(res.data)).catch(console.error);
@@ -34,25 +35,49 @@ const AnalyticsTab = () => {
     requests.forEach(r => {
       if (r.status >= 200 && r.status < 400) success++;
       else error++;
-
-      if (!endpointMap[r.endpoint]) {
-        endpointMap[r.endpoint] = 0;
-      }
-      endpointMap[r.endpoint]++;
     });
-
-    const endpoints = Object.entries(endpointMap)
-      .sort((a, b) => b[1] - a[1])
-      .map(([name, count]) => ({ name, count }));
 
     return {
       total: requests.length,
       success,
       error,
-      avgTime: 45, // Placeholder, would need responseTime in requests table to be real
-      endpoints: endpoints.slice(0, 5)
+      avgTime: 45 // Placeholder
     };
   }, [requests]);
+
+  const baseUrls = useMemo(() => {
+    const urls = new Set();
+    requests.forEach(r => {
+      if (r.baseUrl) urls.add(r.baseUrl.replace(/^https?:\/\//, ''));
+    });
+    return ['All', ...Array.from(urls)];
+  }, [requests]);
+
+  const filteredEndpointsData = useMemo(() => {
+    const endpointMap = {};
+    let filteredTotal = 0;
+
+    requests.forEach(r => {
+      const bUrl = r.baseUrl ? r.baseUrl.replace(/^https?:\/\//, '') : '';
+      if (selectedBaseUrl !== 'All' && bUrl !== selectedBaseUrl) return;
+      
+      filteredTotal++;
+      const displayName = selectedBaseUrl === 'All' && bUrl ? `${bUrl}${r.endpoint}` : r.endpoint;
+      
+      if (!endpointMap[displayName]) {
+        endpointMap[displayName] = 0;
+      }
+      endpointMap[displayName]++;
+    });
+
+    const endpoints = Object.entries(endpointMap)
+      .sort((a, b) => b[1] - a[1])
+      .map(([name, count]) => ({ name, count }))
+      .slice(0, 5);
+
+    return { endpoints, total: filteredTotal || 1 }; // prevent division by zero
+  }, [requests, selectedBaseUrl]);
+
 
   const pieData = {
     labels: ['Success (2xx/3xx)', 'Error (4xx/5xx)'],
@@ -66,38 +91,68 @@ const AnalyticsTab = () => {
     ],
   };
 
-  const lineData = {
-    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-    datasets: [
-      {
-        label: 'Requests per day',
-        data: [12, 19, 3, 5, 2, 3, stats.total], // Mocked time series for visual
-        borderColor: 'rgba(139, 92, 246, 1)',
-        backgroundColor: 'rgba(139, 92, 246, 0.2)',
-        fill: true,
-        tension: 0.4
+  const lineData = useMemo(() => {
+    const days = [];
+    const dateStrings = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      days.push(d.toLocaleDateString('en-US', { weekday: 'short' }));
+      dateStrings.push(d.toLocaleDateString());
+    }
+
+    const counts = [0, 0, 0, 0, 0, 0, 0];
+    requests.forEach(r => {
+      let ts = r.timestamp;
+      if (ts && !ts.endsWith('Z') && ts.includes(' ')) ts = ts.replace(' ', 'T') + 'Z';
+      else if (ts && !ts.endsWith('Z')) ts += 'Z';
+      
+      const rDate = new Date(ts);
+      if (!isNaN(rDate.getTime())) {
+        const localDateString = rDate.toLocaleDateString();
+        const idx = dateStrings.indexOf(localDateString);
+        if (idx !== -1) counts[idx]++;
       }
-    ]
-  };
+    });
+
+    return {
+      labels: days,
+      datasets: [
+        {
+          label: 'Requests per day',
+          data: counts,
+          borderColor: 'rgba(139, 92, 246, 1)',
+          backgroundColor: 'rgba(139, 92, 246, 0.2)',
+          fill: true,
+          tension: 0.4
+        }
+      ]
+    };
+  }, [requests]);
 
   return (
     <div className="fade-in">
-      <h1>Traffic Analytics</h1>
-      
-      <div className="grid-3" style={{ marginBottom: '24px' }}>
-        <div className="glass-panel">
-          <div style={{ color: 'var(--text-muted)' }}>Total Requests</div>
-          <div style={{ fontSize: '2.5rem', fontWeight: 600, color: 'var(--primary)' }}>{stats.total}</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+        <div style={{ background: 'linear-gradient(135deg, var(--primary), #a78bfa)', width: '40px', height: '40px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 15px rgba(139, 92, 246, 0.4)' }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
         </div>
-        <div className="glass-panel">
-          <div style={{ color: 'var(--text-muted)' }}>Success Rate</div>
-          <div style={{ fontSize: '2.5rem', fontWeight: 600, color: 'var(--success)' }}>
+        <h1 style={{ margin: 0, fontWeight: 700, letterSpacing: '-0.5px' }} className="text-gradient gradient-primary">Analytics Dashboard</h1>
+      </div>
+      
+      <div className="grid-3" style={{ marginBottom: '32px' }}>
+        <div className="glass-panel glass-panel-hover">
+          <div style={{ color: 'var(--text-muted)', textTransform: 'uppercase', fontSize: '0.8rem', letterSpacing: '1px', marginBottom: '8px', fontWeight: 600 }}>Total Requests</div>
+          <div style={{ fontSize: '3rem', fontWeight: 700 }} className="text-gradient gradient-primary">{stats.total}</div>
+        </div>
+        <div className="glass-panel glass-panel-hover">
+          <div style={{ color: 'var(--text-muted)', textTransform: 'uppercase', fontSize: '0.8rem', letterSpacing: '1px', marginBottom: '8px', fontWeight: 600 }}>Success Rate</div>
+          <div style={{ fontSize: '3rem', fontWeight: 700 }} className="text-gradient gradient-success">
             {stats.total ? Math.round((stats.success / stats.total) * 100) : 0}%
           </div>
         </div>
-        <div className="glass-panel">
-          <div style={{ color: 'var(--text-muted)' }}>Avg Response Time</div>
-          <div style={{ fontSize: '2.5rem', fontWeight: 600, color: 'var(--info)' }}>{stats.avgTime}ms</div>
+        <div className="glass-panel glass-panel-hover">
+          <div style={{ color: 'var(--text-muted)', textTransform: 'uppercase', fontSize: '0.8rem', letterSpacing: '1px', marginBottom: '8px', fontWeight: 600 }}>Avg Response Time</div>
+          <div style={{ fontSize: '3rem', fontWeight: 700 }} className="text-gradient gradient-info">{stats.avgTime}ms</div>
         </div>
       </div>
 
@@ -118,20 +173,44 @@ const AnalyticsTab = () => {
           </div>
           
           <div className="glass-panel" style={{ height: '350px', overflowY: 'auto' }}>
-            <h3>Top Endpoints</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
-              {stats.endpoints.map(ep => (
-                <div key={ep.name}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '0.9rem' }}>
-                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '70%' }}>{ep.name}</span>
-                    <span style={{ color: 'var(--text-muted)' }}>{ep.count}</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ margin: 0 }}>Top Endpoints</h3>
+              <select 
+                value={selectedBaseUrl} 
+                onChange={e => setSelectedBaseUrl(e.target.value)}
+                style={{ 
+                  background: 'rgba(0,0,0,0.2)', 
+                  border: '1px solid var(--border-color)', 
+                  color: 'var(--text-main)', 
+                  padding: '4px 8px', 
+                  borderRadius: '4px',
+                  fontSize: '0.85rem',
+                  outline: 'none',
+                  maxWidth: '120px'
+                }}
+              >
+                {baseUrls.map(url => (
+                  <option key={url} value={url}>{url}</option>
+                ))}
+              </select>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '20px' }}>
+              {filteredEndpointsData.endpoints.map(ep => (
+                <div key={ep.name} className="endpoint-item">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.95rem' }}>
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '75%', fontWeight: 500, color: 'var(--text-main)' }} title={ep.name}>{ep.name}</span>
+                    <span style={{ color: 'var(--text-main)', background: 'rgba(255,255,255,0.1)', padding: '2px 8px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 600 }}>{ep.count} hits</span>
                   </div>
-                  <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden' }}>
-                    <div style={{ width: `${(ep.count / stats.total) * 100}%`, height: '100%', background: 'var(--primary)' }} />
+                  <div className="progress-bar-bg">
+                    <div className="progress-bar-fill" style={{ width: `${(ep.count / filteredEndpointsData.total) * 100}%` }} />
                   </div>
                 </div>
               ))}
-              {stats.endpoints.length === 0 && <div style={{ color: 'var(--text-muted)' }}>No data available</div>}
+              {filteredEndpointsData.endpoints.length === 0 && (
+                <div style={{ color: 'var(--text-muted)', textAlign: 'center', marginTop: '40px', fontStyle: 'italic' }}>
+                  No requests recorded yet.
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -9,15 +9,23 @@ const ApiHealth = () => {
   const [categoryFilter, setCategoryFilter] = useState('All');
 
   useEffect(() => {
+    let intervalId;
     registryApi.getAll().then(res => {
       setApis(res.data);
       checkAll(res.data);
+      
+      // Poll every 10 seconds
+      intervalId = setInterval(() => {
+        checkAll(res.data);
+      }, 10000);
     });
+
+    return () => clearInterval(intervalId);
   }, []);
 
   const checkAll = async (apiList) => {
     for (let api of apiList) {
-      if (api.healthCheckUrl || api.endpoint) {
+      if (api.baseUrl || api.endpoint) {
         checkHealth(api);
       }
     }
@@ -27,7 +35,7 @@ const ApiHealth = () => {
     try {
       const start = Date.now();
       const res = await healthApi.check({
-        url: api.healthCheckUrl || api.endpoint,
+        url: api.baseUrl + (api.endpoint && api.endpoint !== '/' ? api.endpoint : ''),
         method: api.method,
         headers: JSON.parse(api.healthCheckHeaders || '{}'),
         body: api.healthCheckBody,
@@ -38,7 +46,7 @@ const ApiHealth = () => {
       setHealthStatus(prev => ({
         ...prev,
         [api.id]: {
-          status: (res.data.statusCode >= 200 && res.data.statusCode < 400) ? 'UP' : 'DOWN',
+          status: (res.data.statusCode >= 200 && res.data.statusCode < 300) ? 'Up and Stable' : 'DOWN',
           statusCode: res.data.statusCode,
           responseTime: res.data.responseTime || time,
           error: res.data.error,
@@ -57,7 +65,7 @@ const ApiHealth = () => {
     if (categoryFilter !== 'All' && api.category !== categoryFilter) return false;
     if (filter) {
       const f = filter.toLowerCase();
-      return (api.functionName && api.functionName.toLowerCase().includes(f)) || 
+      return (api.name && api.name.toLowerCase().includes(f)) || 
              (api.endpoint && api.endpoint.toLowerCase().includes(f));
     }
     return true;

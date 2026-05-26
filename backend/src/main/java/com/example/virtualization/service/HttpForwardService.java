@@ -45,9 +45,17 @@ public class HttpForwardService {
             if (headers != null) {
                 for (Map.Entry<String, String> entry : headers.entrySet()) {
                     String key = entry.getKey().toLowerCase();
-                    // Strip restricted headers
-                    if (!key.equals("host") && !key.equals("connection") && !key.equals("content-length")) {
-                        requestBuilder.header(entry.getKey(), entry.getValue());
+                    // Strip restricted and caching headers
+                    if (!key.equals("host") && 
+                        !key.equals("connection") && 
+                        !key.equals("content-length") &&
+                        !key.equals("if-none-match") &&
+                        !key.equals("if-modified-since")) {
+                        if (key.equals("accept-encoding")) {
+                            requestBuilder.header(entry.getKey(), "gzip, deflate");
+                        } else {
+                            requestBuilder.header(entry.getKey(), entry.getValue());
+                        }
                     }
                 }
             }

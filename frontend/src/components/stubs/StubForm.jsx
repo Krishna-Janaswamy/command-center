@@ -5,7 +5,7 @@ import { parseCurl } from '../../utils/curlParser';
 
 const StubForm = ({ stub, onClose, onSave }) => {
   const [formData, setFormData] = useState({
-    name: '', method: 'GET', urlPattern: '', targetHost: '', category: 'Other',
+    name: '', method: 'GET', endpoint: '', baseUrl: '', category: 'Other', environment: 'Dev', description: '',
     requestMatcher: '', responseStatus: 200, responseBody: '', responseHeaders: '{}', delay: 0, enabled: true
   });
   const [curlInput, setCurlInput] = useState('');
@@ -20,8 +20,8 @@ const StubForm = ({ stub, onClose, onSave }) => {
       setFormData(prev => ({
         ...prev,
         method: parsed.method || prev.method,
-        urlPattern: parsed.path || parsed.url || prev.urlPattern,
-        targetHost: parsed.host || prev.targetHost,
+        endpoint: parsed.path || parsed.url || prev.endpoint,
+        baseUrl: parsed.host || prev.baseUrl,
         requestMatcher: parsed.body || prev.requestMatcher
       }));
       setCurlInput('');
@@ -66,24 +66,32 @@ const StubForm = ({ stub, onClose, onSave }) => {
               <input required className="form-control" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
             </div>
             <div className="form-group">
+              <label>Base URL</label>
+              <input className="form-control" value={formData.baseUrl} onChange={e => setFormData({...formData, baseUrl: e.target.value})} />
+            </div>
+            <div className="form-group">
+              <label>Endpoint</label>
+              <input required className="form-control" value={formData.endpoint} onChange={e => setFormData({...formData, endpoint: e.target.value})} />
+            </div>
+            <div className="form-group">
               <label>Method</label>
               <select className="form-control" value={formData.method} onChange={e => setFormData({...formData, method: e.target.value})}>
                 <option>ANY</option><option>GET</option><option>POST</option><option>PUT</option><option>DELETE</option><option>PATCH</option>
               </select>
             </div>
             <div className="form-group">
-              <label>URL Pattern (Regex or AntPath)</label>
-              <input required className="form-control" value={formData.urlPattern} onChange={e => setFormData({...formData, urlPattern: e.target.value})} />
-            </div>
-            <div className="form-group">
-              <label>Target Host (Optional)</label>
-              <input className="form-control" value={formData.targetHost} onChange={e => setFormData({...formData, targetHost: e.target.value})} />
-            </div>
-            <div className="form-group">
               <label>Category</label>
               <select className="form-control" value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})}>
                 <option>Other</option><option>Claims</option><option>SBI</option><option>GW</option>
               </select>
+            </div>
+            <div className="form-group">
+              <label>Environment</label>
+              <input required className="form-control" value={formData.environment} onChange={e => setFormData({...formData, environment: e.target.value})} />
+            </div>
+            <div className="form-group" style={{ gridColumn: 'span 2' }}>
+              <label>Description</label>
+              <textarea className="form-control" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} rows="2" />
             </div>
             {['POST', 'PUT', 'PATCH'].includes(formData.method) && (
               <div className="form-group" style={{ gridColumn: 'span 2' }}>

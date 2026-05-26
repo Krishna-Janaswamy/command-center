@@ -5,8 +5,8 @@ import { parseCurl } from '../../utils/curlParser';
 
 const ApiFormModal = ({ api, onClose, onSave }) => {
   const [formData, setFormData] = useState({
-    functionName: '', method: 'GET', endpoint: '', category: 'Other', environment: 'Dev',
-    description: '', healthCheckUrl: '', healthCheckHeaders: '{}', healthCheckBody: '',
+    name: '', version: 'v1', method: 'GET', endpoint: '', category: 'Other', environment: 'Dev',
+    description: '', baseUrl: '', healthCheckHeaders: '{}', healthCheckBody: '',
     healthCheckParams: '{}', retryOn500: 0, isCustom: false
   });
   const [curlInput, setCurlInput] = useState('');
@@ -24,7 +24,7 @@ const ApiFormModal = ({ api, onClose, onSave }) => {
         ...prev,
         method: parsed.method || prev.method,
         endpoint: parsed.path || parsed.url || prev.endpoint,
-        healthCheckUrl: parsed.url || prev.healthCheckUrl,
+        baseUrl: parsed.url || prev.baseUrl,
         healthCheckHeaders: Object.keys(parsed.headers).length > 0 ? JSON.stringify(parsed.headers, null, 2) : prev.healthCheckHeaders,
         healthCheckBody: parsed.body || prev.healthCheckBody
       }));
@@ -66,18 +66,26 @@ const ApiFormModal = ({ api, onClose, onSave }) => {
         <form onSubmit={handleSubmit}>
           <div className="modal-body grid-2">
             <div className="form-group">
-              <label>Function Name</label>
-              <input required className="form-control" value={formData.functionName} onChange={e => setFormData({...formData, functionName: e.target.value})} />
+              <label>Name</label>
+              <input required className="form-control" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
+            </div>
+            <div className="form-group">
+              <label>Version</label>
+              <input required className="form-control" value={formData.version} onChange={e => setFormData({...formData, version: e.target.value})} />
+            </div>
+            <div className="form-group">
+              <label>Base URL (Upstream Host)</label>
+              <input className="form-control" value={formData.baseUrl} onChange={e => setFormData({...formData, baseUrl: e.target.value})} />
+            </div>
+            <div className="form-group">
+              <label>Endpoint</label>
+              <input required className="form-control" value={formData.endpoint} onChange={e => setFormData({...formData, endpoint: e.target.value})} />
             </div>
             <div className="form-group">
               <label>Method</label>
               <select className="form-control" value={formData.method} onChange={e => setFormData({...formData, method: e.target.value})}>
                 <option>GET</option><option>POST</option><option>PUT</option><option>DELETE</option><option>PATCH</option>
               </select>
-            </div>
-            <div className="form-group">
-              <label>Endpoint</label>
-              <input required className="form-control" value={formData.endpoint} onChange={e => setFormData({...formData, endpoint: e.target.value})} />
             </div>
             <div className="form-group">
               <label>Category</label>
@@ -87,16 +95,14 @@ const ApiFormModal = ({ api, onClose, onSave }) => {
               <label>Environment</label>
               <input required className="form-control" value={formData.environment} onChange={e => setFormData({...formData, environment: e.target.value})} />
             </div>
-            <div className="form-group">
-              <label>Base URL</label>
-              <input className="form-control" value={formData.healthCheckUrl} onChange={e => setFormData({...formData, healthCheckUrl: e.target.value})} />
-            </div>
+
             {['POST', 'PUT', 'PATCH'].includes(formData.method) && (
               <div className="form-group" style={{ gridColumn: 'span 2' }}>
                 <label>Health Check Body</label>
                 <textarea className="form-control" value={formData.healthCheckBody || ''} onChange={e => setFormData({...formData, healthCheckBody: e.target.value})} rows="3" />
               </div>
             )}
+
             <div className="form-group" style={{ gridColumn: 'span 2' }}>
               <label>Health Check Headers (JSON)</label>
               <textarea className="form-control" value={formData.healthCheckHeaders || '{}'} onChange={e => setFormData({...formData, healthCheckHeaders: e.target.value})} rows="2" />

@@ -53,6 +53,11 @@ public class RequestController {
             req.setRecorded(rs.getInt("isRecorded") == 1);
             req.setCategory(rs.getString("category"));
             req.setOwnerGroup(rs.getString("ownerGroup"));
+            
+            try {
+                req.setSource(rs.getString("source"));
+            } catch (Exception e) {}
+            
             return req;
         });
 
