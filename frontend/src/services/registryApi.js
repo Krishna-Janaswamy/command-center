@@ -61,6 +61,7 @@ export const stubApi = {
   create: (data) => api.post('/stubs', data),
   update: (id, data) => api.put(`/stubs/${id}`, data),
   delete: (id) => api.delete(`/stubs/${id}`),
+  deleteAll: () => api.delete('/stubs'),
   toggle: (id) => api.post(`/stubs/${id}/toggle`),
   getVersions: (id) => api.get(`/stubs/${id}/versions`),
   createVersion: (id, data) => api.post(`/stubs/${id}/versions`, data),

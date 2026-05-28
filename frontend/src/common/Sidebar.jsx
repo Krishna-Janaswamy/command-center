@@ -13,14 +13,12 @@ const Sidebar = ({ user }) => {
     }).catch(console.error);
   }, []);
 
-  const handleToggle = async () => {
-    const newValue = !toggle;
-    try {
-      await settingsApi.update('useToggle', newValue ? 'on' : 'off');
-      setToggle(newValue);
-    } catch (err) {
-      console.error(err);
-    }
+  const handleToggle = () => {
+    setToggle(prev => {
+      const newValue = !prev;
+      settingsApi.update('useToggle', newValue ? 'on' : 'off').catch(console.error);
+      return newValue;
+    });
   };
   return (
     <aside className="sidebar">

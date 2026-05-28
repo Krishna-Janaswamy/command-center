@@ -50,11 +50,10 @@ const APITesterTab = () => {
         if (targetBaseUrl.includes('http')) {
           const urlObj = new URL(targetBaseUrl);
           targetBaseUrl = urlObj.origin;
-          
-          // If this came from a recorded request (req.url is present), use its path
-          if (req.url) {
-            targetEndpoint = urlObj.pathname + urlObj.search;
-          }
+        }
+        if (req.url && req.url.includes('http')) {
+          const fullUrlObj = new URL(req.url);
+          targetEndpoint = fullUrlObj.pathname + fullUrlObj.search;
         }
       } catch (e) {
         // Leave as is if parsing fails
@@ -110,7 +109,7 @@ const APITesterTab = () => {
       url: '/proxy-request',
       method,
       headers: parsedHeaders,
-      params: { endpoint, allowRealApi: false },
+      params: { endpoint },
       data: method !== 'GET' ? body : undefined
     };
 

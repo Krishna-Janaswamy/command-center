@@ -27,6 +27,7 @@ const RequestsTab = () => {
     if (window.confirm('Delete all recorded requests?')) {
       try {
         await requestApi.deleteAll();
+        setSelectedRequest(null);
         loadRequests();
       } catch (err) {
         console.error(err);

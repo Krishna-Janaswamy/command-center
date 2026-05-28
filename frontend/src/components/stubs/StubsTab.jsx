@@ -69,6 +69,20 @@ const StubsTab = () => {
     }
   };
 
+  const handleClearAll = async () => {
+    if (window.confirm('Are you sure you want to delete all stubs? This cannot be undone.')) {
+      try {
+        await stubApi.deleteAll();
+        setStubs([]);
+        setSelectedStub(null);
+        setVersions([]);
+      } catch (err) {
+        console.error(err);
+        alert('Failed to clear stubs');
+      }
+    }
+  };
+
   const filteredStubs = stubs.filter(s => {
     if (categoryFilter !== 'All' && s.category !== categoryFilter) return false;
     if (filter) {
@@ -86,7 +100,10 @@ const StubsTab = () => {
       <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <h2>Stubs ({filteredStubs.length})</h2>
-          <button className="btn" onClick={() => { setEditStub(null); setShowForm(true); }}>+ New Stub</button>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button className="btn" onClick={() => { setEditStub(null); setShowForm(true); }}>+ New Stub</button>
+            <button className="btn-danger" style={{ padding: '6px 12px', fontSize: '0.85rem', borderRadius: '6px', border: '1px solid rgba(239, 68, 68, 0.2)', background: 'rgba(239, 68, 68, 0.15)', color: '#fca5a5' }} onClick={handleClearAll}>Clear All</button>
+          </div>
         </div>
         <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
           <input className="form-control" placeholder="Search stubs..." value={filter} onChange={e => setFilter(e.target.value)} />
@@ -136,8 +153,21 @@ const StubsTab = () => {
                 <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '8px' }}>Endpoint: {selectedStub.method} {selectedStub.endpoint}</div>
                 {selectedStub.environment && <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Env: {selectedStub.environment}</div>}
                 {selectedStub.description && <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Desc: {selectedStub.description}</div>}
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '12px' }}>
+                  <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 600 }}>Mock URL:</div>
+                  <code style={{ fontSize: '0.75rem', background: 'rgba(0,0,0,0.1)', padding: '4px 8px', borderRadius: '4px', wordBreak: 'break-all' }}>
+                    {`${window.location.protocol}//${window.location.host}/api/mock/${selectedStub.id}`}
+                  </code>
+                </div>
               </div>
               <div style={{ display: 'flex', gap: '8px' }}>
+                <button 
+                  className="btn-secondary" 
+                  title="Copy Mock URL"
+                  style={{ padding: '6px 12px', fontSize: '0.85rem', borderRadius: '6px', background: 'rgba(16, 185, 129, 0.1)', color: '#34d399', border: '1px solid rgba(16, 185, 129, 0.2)' }} 
+                  onClick={() => navigator.clipboard.writeText(`${window.location.protocol}//${window.location.host}/api/mock/${selectedStub.id}`)}>
+                  🔗 Copy
+                </button>
                 <button 
                   className="btn-secondary" 
                   title="Test Stub in API Tester"

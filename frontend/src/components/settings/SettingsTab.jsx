@@ -21,10 +21,10 @@ const SettingsTab = () => {
     setSettings(prev => ({ ...prev, [key]: value }));
   };
 
-  const handleSave = async (key) => {
+  const handleSave = async (key, value) => {
     setSaving(true);
     try {
-      await settingsApi.update(key, settings[key]);
+      await settingsApi.update(key, value);
     } catch (err) {
       console.error(err);
       alert('Failed to update setting');
@@ -61,7 +61,7 @@ const SettingsTab = () => {
                   onChange={(e) => {
                     const val = e.target.checked ? 'on' : 'off';
                     handleChange('useToggle', val);
-                    handleSave('useToggle');
+                    handleSave('useToggle', val);
                   }}
                   style={{ width: '20px', height: '20px', cursor: 'pointer' }}
                 />
@@ -80,7 +80,7 @@ const SettingsTab = () => {
                   onChange={(e) => {
                     const val = e.target.checked ? 'true' : 'false';
                     handleChange('recordingMode', val);
-                    handleSave('recordingMode');
+                    handleSave('recordingMode', val);
                   }}
                   style={{ width: '20px', height: '20px', cursor: 'pointer' }}
                 />

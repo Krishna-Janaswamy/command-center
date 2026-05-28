@@ -17,7 +17,7 @@ public class StubService {
     }
 
     public List<Stub> getAllStubs() {
-        return jdbc.query("SELECT * FROM stubs", (rs, rowNum) -> {
+        return jdbc.query("SELECT * FROM stubs ORDER BY createdAt DESC", (rs, rowNum) -> {
             Stub stub = new Stub();
             stub.setId(rs.getString("id"));
             stub.setName(rs.getString("name"));
@@ -88,10 +88,12 @@ public class StubService {
     }
 
     public void deleteStub(String id) {
+        jdbc.update("DELETE FROM stub_versions WHERE stubId = ?", id);
         jdbc.update("DELETE FROM stubs WHERE id = ?", id);
     }
 
     public void clearAllStubs() {
+        jdbc.update("DELETE FROM stub_versions");
         jdbc.update("DELETE FROM stubs");
     }
 

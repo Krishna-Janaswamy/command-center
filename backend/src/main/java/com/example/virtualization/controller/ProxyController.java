@@ -24,7 +24,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "*", exposedHeaders = {"X-Response-Source", "X-Recorded-Id", "X-No-Stub-Found"})
 public class ProxyController {
 
     private final HttpForwardService httpForwardService;
@@ -55,7 +55,7 @@ public class ProxyController {
 
         try {
 
-        String globalUseToggle = "off";
+        String globalUseToggle = "true";
         String globalRecordingMode = "true";
         try {
             java.util.List<Map<String, Object>> settings = jdbc.queryForList("SELECT key, value FROM settings WHERE key IN ('useToggle', 'recordingMode')");
@@ -65,11 +65,15 @@ public class ProxyController {
                 if ("useToggle".equals(k)) globalUseToggle = v;
                 if ("recordingMode".equals(k)) globalRecordingMode = v;
             }
-        } catch (Exception e) {}
+        } catch (Exception e) {
+            System.err.println("Failed to read settings from DB: " + e.getMessage());
+        }
 
         String toggleHeader = SecurityHelper.firstNonBlank(request.getHeader("X-Use-Toggle"), request.getHeader("X-Mock-Toggle"), globalUseToggle);
         boolean useMock = "off".equalsIgnoreCase(SecurityHelper.resolveToggleValue(toggleHeader));
         boolean autoRecord = "on".equalsIgnoreCase(SecurityHelper.resolveToggleValue(globalRecordingMode));
+
+        System.out.println("[PROXY] Toggle DB value='" + globalUseToggle + "', resolved header='" + toggleHeader + "', useMock=" + useMock + ", autoRecord=" + autoRecord);
 
         String targetHost = request.getHeader("X-Target-Host");
         String path = request.getParameter("endpoint");
@@ -98,13 +102,24 @@ public class ProxyController {
             requestHeaders.put(headerName, request.getHeader(headerName));
         }
 
+        boolean explicitNoRealApi = "false".equalsIgnoreCase(request.getParameter("allowRealApi"));
+        boolean forceRealApi = "true".equalsIgnoreCase(request.getParameter("allowRealApi"));
+
+        System.out.println("[PROXY] Decision: useMock=" + useMock + ", forceRealApi=" + forceRealApi + ", explicitNoRealApi=" + explicitNoRealApi + ", url=" + url);
+
+        // ===== TOGGLE IS THE FINAL SOURCE OF TRUTH =====
+        // Toggle OFF (useMock=true): ONLY return stubs. NEVER hit live API unless user explicitly forced it.
+        // Toggle ON  (useMock=false): ALWAYS hit live API.
+
         if (useMock) {
+            // MOCK MODE: Try to find a stub
             Stub stub = stubMatchingService.findMatchingStub(request.getMethod(), url, body, targetHost);
+            System.out.println("[PROXY] Mock mode - stub found: " + (stub != null ? stub.getName() : "NONE"));
+
             if (stub != null) {
+                // Stub found — return it
                 if (stub.getDelay() > 0) {
-                    try {
-                        Thread.sleep(stub.getDelay());
-                    } catch (InterruptedException ignored) {}
+                    try { Thread.sleep(stub.getDelay()); } catch (InterruptedException ignored) {}
                 }
                 String reqId = UUID.randomUUID().toString();
                 jdbc.update("INSERT INTO requests (id, method, url, baseUrl, endpoint, headers, body, status, response, responseHeaders, isRecorded, category, ownerGroup, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -113,7 +128,7 @@ public class ProxyController {
                 ResponseEntity.BodyBuilder builder = ResponseEntity.status(stub.getResponseStatus())
                         .header("X-Response-Source", "stub")
                         .header("X-Recorded-Id", reqId);
-                
+
                 if (stub.getResponseHeaders() != null && !stub.getResponseHeaders().isEmpty() && !stub.getResponseHeaders().equals("{}")) {
                     try {
                         com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
@@ -123,17 +138,27 @@ public class ProxyController {
                         }
                     } catch (Exception e) {}
                 }
-                
+
                 return builder.body(stub.getResponseBody());
             }
-            // If no stub is found, fall through to live API to allow auto-recording
-            if ("false".equalsIgnoreCase(request.getParameter("allowRealApi"))) {
+
+            // No stub found in mock mode
+            if (forceRealApi) {
+                // User explicitly clicked "Yes, hit real-time API" in the popup
+                System.out.println("[PROXY] Mock mode but user forced real API — allowing live call");
+                // Fall through to live API call below
+            } else {
+                // HARD BLOCK — never hit live API
+                System.out.println("[PROXY] Mock mode — NO stub found, BLOCKING live API call");
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .header("X-No-Stub-Found", "true")
-                        .body("{\"error\": \"No stub available for this API.\"}");
+                        .body("{\"error\": \"Toggle is OFF (Mock mode). No stub found for this endpoint.\"}");
             }
         }
 
+        // ===== LIVE API CALL =====
+        // We only reach here if: toggle is ON, OR user explicitly forced real API
+        System.out.println("[PROXY] Hitting LIVE API: " + url);
         HttpForwardService.OutboundResponse res = httpForwardService.send(url, request.getMethod(), requestHeaders, body, null, 15);
 
         // Record request
@@ -181,36 +206,11 @@ public class ProxyController {
             if (autoRecord) {
                 Stub existingStub = stubMatchingService.findMatchingStub(request.getMethod(), url, body, targetHost, true);
                 if (existingStub != null) {
-                    java.util.List<com.example.virtualization.model.StubVersion> existingVersions = stubService.getVersions(existingStub.getId());
-                    boolean statusExists = existingVersions.stream().anyMatch(v -> v.getResponseStatus() == res.statusCode);
-                    
-                    if (!statusExists) {
-                        // Create a new version for the existing stub
-                        com.example.virtualization.model.StubVersion newVersion = new com.example.virtualization.model.StubVersion();
-                        newVersion.setVersionTag("Auto-recorded live traffic");
-                        newVersion.setResponseStatus(res.statusCode);
-                        newVersion.setResponseBody(res.body);
-                        newVersion.setResponseHeaders(res.headers != null ? res.headers.toString() : "");
-                        newVersion.setActive(false); // Save silently as inactive
-                        stubService.createVersion(existingStub.getId(), newVersion);
-                    } else {
-                        // Update the existing version with the latest live response
-                        existingVersions.stream()
-                                .filter(v -> v.getResponseStatus() == res.statusCode)
-                                .findFirst()
-                                .ifPresent(v -> {
-                                    v.setResponseBody(res.body);
-                                    v.setResponseHeaders(res.headers != null ? res.headers.toString() : "");
-                                    stubService.updateVersion(v.getVersionId(), v);
-                                    
-                                    // If this version is the currently active version, we must ALSO update the main stub
-                                    if (v.isActive()) {
-                                        existingStub.setResponseBody(res.body);
-                                        existingStub.setResponseHeaders(res.headers != null ? res.headers.toString() : "");
-                                        stubService.createOrUpdateStub(existingStub);
-                                    }
-                                });
-                    }
+                    // Automatically update the stub's response to the latest live API response
+                    existingStub.setResponseStatus(res.statusCode);
+                    existingStub.setResponseBody(res.body);
+                    existingStub.setResponseHeaders(res.headers != null ? res.headers.toString() : "");
+                    stubService.createOrUpdateStub(existingStub);
                 } else {
                     Stub stub = new Stub();
                     stub.setName("Auto-recorded: " + path);
