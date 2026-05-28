@@ -10,18 +10,10 @@ const ApiHealth = () => {
   const [lastRefreshed, setLastRefreshed] = useState(null);
 
   useEffect(() => {
-    let intervalId;
     registryApi.getAll().then(res => {
       setApis(res.data);
       checkAll(res.data);
-      
-      // Poll every 10 seconds
-      intervalId = setInterval(() => {
-        checkAll(res.data);
-      }, 10000);
     });
-
-    return () => clearInterval(intervalId);
   }, []);
 
   const checkAll = async (apiList) => {
@@ -85,7 +77,7 @@ const ApiHealth = () => {
             </div>
           )}
         </div>
-        <button className="btn" onClick={() => checkAll(filteredApis)}>Refresh All</button>
+        <button className="btn" onClick={() => checkAll(apis)}>Refresh All</button>
       </div>
 
       <div className="glass-panel" style={{ padding: '16px', marginBottom: '24px', display: 'flex', gap: '16px' }}>

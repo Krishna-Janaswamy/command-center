@@ -187,7 +187,6 @@ public class ProxyController {
                     if (!statusExists) {
                         // Create a new version for the existing stub
                         com.example.virtualization.model.StubVersion newVersion = new com.example.virtualization.model.StubVersion();
-                        newVersion.setVersion("auto-" + System.currentTimeMillis());
                         newVersion.setVersionTag("Auto-recorded live traffic");
                         newVersion.setResponseStatus(res.statusCode);
                         newVersion.setResponseBody(res.body);
