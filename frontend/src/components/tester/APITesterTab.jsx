@@ -13,6 +13,8 @@ const APITesterTab = () => {
   const [response, setResponse] = useState(null);
   const [loading, setLoading] = useState(false);
   const [curlInput, setCurlInput] = useState('');
+  const [showNoStubModal, setShowNoStubModal] = useState(false);
+  const [pendingRequestData, setPendingRequestData] = useState(null);
 
   const location = useLocation();
 
@@ -104,31 +106,39 @@ const APITesterTab = () => {
     }
     parsedHeaders['X-Api-Category'] = category;
 
-    const requestData = {
+    let requestData = {
       url: '/proxy-request',
       method,
       headers: parsedHeaders,
-      params: { endpoint },
+      params: { endpoint, allowRealApi: false },
       data: method !== 'GET' ? body : undefined
     };
 
     try {
-      const start = Date.now();
-      const res = await api.request(requestData);
-      const time = Date.now() - start;
-      setResponse({
-        status: res.status,
-        time,
-        source: res.headers['x-response-source'] || 'live-api',
-        data: res.data,
-        headers: res.headers
-      });
-    } catch (err) {
-      setResponse({
-        status: err.response?.status || 'Network Error',
-        error: err.message,
-        data: err.response?.data
-      });
+      let start = Date.now();
+      try {
+        const res = await api.request(requestData);
+        const time = Date.now() - start;
+        setResponse({
+          status: res.status,
+          time,
+          source: res.headers['x-response-source'] || 'live-api',
+          data: res.data,
+          headers: res.headers
+        });
+      } catch (err) {
+        if (err.response && err.response.headers['x-no-stub-found'] === 'true') {
+          setPendingRequestData(requestData);
+          setShowNoStubModal(true);
+          return;
+        }
+        
+        setResponse({
+          status: err.response?.status || 'Network Error',
+          error: err.message,
+          data: err.response?.data
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -221,6 +231,68 @@ const APITesterTab = () => {
           )}
         </div>
       </div>
+
+      {showNoStubModal && (
+        <div className="modal-overlay fade-in" style={{ zIndex: 9999 }}>
+          <div className="modal-content glass-panel" style={{ maxWidth: '450px', padding: 0 }}>
+            <div className="modal-header">
+              <h3 style={{ margin: 0 }}>No Stub Available</h3>
+            </div>
+            <div className="modal-body" style={{ textAlign: 'center' }}>
+              <p style={{ color: 'var(--text-muted)', lineHeight: '1.5' }}>
+                We don't have a stub available for this API. Do you want to hit the real-time API?
+              </p>
+            </div>
+            <div className="modal-footer" style={{ justifyContent: 'center' }}>
+              <button 
+                className="btn-secondary" 
+                onClick={() => {
+                  setShowNoStubModal(false);
+                  setResponse({
+                    status: 404,
+                    error: "No stub available. Request cancelled.",
+                    data: null
+                  });
+                }}
+              >
+                Cancel
+              </button>
+              <button 
+                className="btn" 
+                onClick={async () => {
+                  setShowNoStubModal(false);
+                  if (pendingRequestData) {
+                    setLoading(true);
+                    pendingRequestData.params.allowRealApi = true;
+                    try {
+                      const start = Date.now();
+                      const retryRes = await api.request(pendingRequestData);
+                      const time = Date.now() - start;
+                      setResponse({
+                        status: retryRes.status,
+                        time,
+                        source: retryRes.headers['x-response-source'] || 'live-api',
+                        data: retryRes.data,
+                        headers: retryRes.headers
+                      });
+                    } catch (retryErr) {
+                      setResponse({
+                        status: retryErr.response?.status || 'Network Error',
+                        error: retryErr.message,
+                        data: retryErr.response?.data
+                      });
+                    } finally {
+                      setLoading(false);
+                    }
+                  }
+                }}
+              >
+                Yes, hit real-time API
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

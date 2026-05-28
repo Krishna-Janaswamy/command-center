@@ -54,35 +54,39 @@ const Sidebar = ({ user }) => {
       </div>
       {virtOpen && (
         <>
-          <div style={{ marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', background: 'rgba(0,0,0,0.2)', padding: '12px 16px', borderBottom: '1px solid var(--border-color)', borderTop: '1px solid var(--border-color)' }}>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Live API:</span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <button 
-                onClick={handleToggle}
-                style={{
-                  width: '40px', height: '22px', borderRadius: '11px', border: 'none',
-                  background: toggle ? 'var(--success)' : 'var(--text-muted)',
-                  position: 'relative', cursor: 'pointer', transition: 'background 0.2s'
-                }}
-              >
-                <div style={{
-                  width: '18px', height: '18px', borderRadius: '50%', background: 'white',
-                  position: 'absolute', top: '2px', left: toggle ? '20px' : '2px',
-                  transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
-                }} />
-              </button>
-              <span style={{ fontSize: '0.8rem', fontWeight: 600, color: toggle ? 'var(--success)' : 'var(--text-muted)' }}>
-                {toggle ? 'LIVE' : 'STUBBED'}
-              </span>
-            </div>
-          </div>
-          <nav>
+          <nav style={{ marginTop: '8px' }}>
             <NavLink to="/service-virtualization/api" className={({isActive}) => isActive ? "active" : ""}>🔌 API Request</NavLink>
             <NavLink to="/service-virtualization/stubs" className={({isActive}) => isActive ? "active" : ""}>🎭 Stubs</NavLink>
             <NavLink to="/service-virtualization/requests" className={({isActive}) => isActive ? "active" : ""}>📋 Recorded Requests</NavLink>
             <NavLink to="/service-virtualization/analytics" className={({isActive}) => isActive ? "active" : ""}>📊 Analytics</NavLink>
             <NavLink to="/service-virtualization/settings" className={({isActive}) => isActive ? "active" : ""}>⚙️ Settings</NavLink>
           </nav>
+
+          <div style={{ margin: '24px 16px', padding: '16px', background: 'rgba(255,255,255,0.6)', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '12px', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)' }}>Request Mode</span>
+              <div 
+                onClick={handleToggle}
+                style={{
+                  width: '50px', height: '28px', borderRadius: '14px',
+                  background: toggle ? 'var(--success)' : 'var(--primary)',
+                  position: 'relative', cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)',
+                  boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.2)',
+                  display: 'flex', alignItems: 'center'
+                }}
+              >
+                <div style={{
+                  width: '24px', height: '24px', borderRadius: '50%', background: 'white',
+                  position: 'absolute', top: '2px', left: toggle ? '24px' : '2px',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)', boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                }} />
+              </div>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', fontWeight: 600 }}>
+              <span style={{ color: !toggle ? 'var(--primary)' : 'var(--text-muted)', transition: 'color 0.3s' }}>STUBBED</span>
+              <span style={{ color: toggle ? 'var(--success)' : 'var(--text-muted)', transition: 'color 0.3s' }}>LIVE</span>
+            </div>
+          </div>
         </>
       )}
     </aside>
