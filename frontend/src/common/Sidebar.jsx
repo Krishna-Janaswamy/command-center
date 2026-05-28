@@ -82,8 +82,8 @@ const Sidebar = ({ user }) => {
               </div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', fontWeight: 600 }}>
-              <span style={{ color: !toggle ? 'var(--primary)' : 'var(--text-muted)', transition: 'color 0.3s' }}>STUBBED</span>
-              <span style={{ color: toggle ? 'var(--success)' : 'var(--text-muted)', transition: 'color 0.3s' }}>LIVE</span>
+              <span style={{ color: 'var(--primary)', opacity: !toggle ? 1 : 0, transition: 'opacity 0.3s' }}>STUBBED</span>
+              <span style={{ color: 'var(--success)', opacity: toggle ? 1 : 0, transition: 'opacity 0.3s' }}>LIVE</span>
             </div>
           </div>
         </>
