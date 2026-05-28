@@ -132,12 +132,6 @@ public class ProxyController {
                         .header("X-No-Stub-Found", "true")
                         .body("{\"error\": \"No stub available for this API.\"}");
             }
-        } else {
-            if ("false".equalsIgnoreCase(request.getParameter("allowRealApi"))) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .header("X-No-Stub-Found", "true")
-                        .body("{\"error\": \"Mock is disabled and real API is not allowed.\"}");
-            }
         }
 
         HttpForwardService.OutboundResponse res = httpForwardService.send(url, request.getMethod(), requestHeaders, body, null, 15);

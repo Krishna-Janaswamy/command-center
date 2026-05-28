@@ -26,7 +26,6 @@ const Sidebar = ({ user }) => {
     <aside className="sidebar">
       <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
         <div className="brand" style={{ cursor: 'pointer' }}>
-          <span style={{ fontSize: '1.5rem' }}>⬢</span>
           Command Center
         </div>
       </Link>
