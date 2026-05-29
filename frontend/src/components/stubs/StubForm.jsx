@@ -105,11 +105,11 @@ const StubForm = ({ stub, onClose, onSave }) => {
             </div>
             <div className="form-group" style={{ gridColumn: 'span 2' }}>
               <label>Response Body</label>
-              <textarea className="form-control" value={formData.responseBody} onChange={e => setFormData({...formData, responseBody: e.target.value})} rows="4" />
+              <textarea className="form-control" value={formData.responseBody || ''} onChange={e => setFormData({...formData, responseBody: e.target.value})} rows="4" />
             </div>
             <div className="form-group">
               <label>Response Headers (JSON)</label>
-              <textarea className="form-control" value={formData.responseHeaders} onChange={e => setFormData({...formData, responseHeaders: e.target.value})} rows="2" />
+              <textarea className="form-control" value={formData.responseHeaders || ''} onChange={e => setFormData({...formData, responseHeaders: e.target.value})} rows="2" />
             </div>
             <div className="form-group">
               <label>Delay (ms)</label>

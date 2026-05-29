@@ -63,11 +63,11 @@ const StubVersionForm = ({ stubId, version, onClose, onSave }) => {
             </div>
             <div className="form-group" style={{ gridColumn: 'span 2' }}>
               <label>Response Body</label>
-              <textarea className="form-control" value={formData.responseBody} onChange={e => setFormData({...formData, responseBody: e.target.value})} rows="5" />
+              <textarea className="form-control" value={formData.responseBody || ''} onChange={e => setFormData({...formData, responseBody: e.target.value})} rows="5" />
             </div>
             <div className="form-group" style={{ gridColumn: 'span 2' }}>
               <label>Response Headers (JSON)</label>
-              <textarea className="form-control" value={formData.responseHeaders} onChange={e => setFormData({...formData, responseHeaders: e.target.value})} rows="3" />
+              <textarea className="form-control" value={formData.responseHeaders || ''} onChange={e => setFormData({...formData, responseHeaders: e.target.value})} rows="3" />
             </div>
           </div>
           <div className="modal-footer">

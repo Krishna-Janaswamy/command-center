@@ -89,10 +89,14 @@ public class ProxyController {
             URI uri = new URI(url);
             InetAddress address = InetAddress.getByName(uri.getHost());
             if (address.isAnyLocalAddress() || address.isLoopbackAddress() || address.isLinkLocalAddress() || address.isSiteLocalAddress()) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"error\": \"SSRF protection: Internal addresses are not allowed\"}");
+                if (!useMock) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"error\": \"SSRF protection: Internal addresses are not allowed\"}");
+                }
             }
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("{\"error\": \"Invalid URL\"}");
+            if (!useMock) {
+                return ResponseEntity.badRequest().body("{\"error\": \"Invalid URL\"}");
+            }
         }
 
         Map<String, String> requestHeaders = new HashMap<>();
@@ -206,10 +210,38 @@ public class ProxyController {
             if (autoRecord) {
                 Stub existingStub = stubMatchingService.findMatchingStub(request.getMethod(), url, body, targetHost, true);
                 if (existingStub != null) {
-                    // Automatically update the stub's response to the latest live API response
+                    // Check if this exact status code and body already exists in versions or the active stub
+                    boolean matchesActive = existingStub.getResponseStatus() == res.statusCode &&
+                                            java.util.Objects.equals(existingStub.getResponseBody(), res.body);
+
+                    java.util.List<com.example.virtualization.model.StubVersion> existingVersions = stubService.getVersions(existingStub.getId());
+                    boolean matchesVersion = existingVersions.stream().anyMatch(v -> 
+                        v.getResponseStatus() == res.statusCode && 
+                        java.util.Objects.equals(v.getResponseBody(), res.body)
+                    );
+                    
+                    System.out.println("[DEBUG-PROXY] URL=" + url);
+                    System.out.println("[DEBUG-PROXY] res.statusCode=" + res.statusCode + ", existingStub.getResponseStatus()=" + existingStub.getResponseStatus());
+                    System.out.println("[DEBUG-PROXY] res.body length=" + (res.body != null ? res.body.length() : 0) + ", existingStub.getResponseBody() length=" + (existingStub.getResponseBody() != null ? existingStub.getResponseBody().length() : 0));
+                    System.out.println("[DEBUG-PROXY] matchesActive=" + matchesActive + ", matchesVersion=" + matchesVersion);
+                    
+                    if (!matchesActive && !matchesVersion) {
+                        System.out.println("[DEBUG-PROXY] Creating new version for status: " + res.statusCode);
+                        // Create a new version for the existing stub to capture this unique response
+                        com.example.virtualization.model.StubVersion newVersion = new com.example.virtualization.model.StubVersion();
+                        newVersion.setVersionTag("Auto-recorded: " + res.statusCode);
+                        newVersion.setResponseStatus(res.statusCode);
+                        newVersion.setResponseBody(res.body);
+                        newVersion.setResponseHeaders(res.headers != null ? res.headers.toString() : "");
+                        newVersion.setActive(false);
+                        stubService.createVersion(existingStub.getId(), newVersion);
+                    }
+
+                    // Automatically update the main stub's active response to the latest live API response
                     existingStub.setResponseStatus(res.statusCode);
                     existingStub.setResponseBody(res.body);
                     existingStub.setResponseHeaders(res.headers != null ? res.headers.toString() : "");
+                    existingStub.setRequestMatcher(body); // Update the latest request body
                     stubService.createOrUpdateStub(existingStub);
                 } else {
                     Stub stub = new Stub();
@@ -219,6 +251,7 @@ public class ProxyController {
                     stub.setEnvironment("Dev");
                     stub.setDescription("Auto-recorded from live traffic");
                     stub.setBaseUrl(targetHost);
+                    stub.setRequestMatcher(body); // Save the request body for the API Tester
                     stub.setResponseStatus(res.statusCode);
                     stub.setResponseBody(res.body);
                     stub.setResponseHeaders(res.headers != null ? res.headers.toString() : "");
@@ -227,8 +260,6 @@ public class ProxyController {
                     stub.setVersion("v1");
                     stub.setOwnerGroup(user.getAdGroup());
                     Stub createdStub = stubService.createOrUpdateStub(stub);
-
-
                 }
             }
         } catch (Exception e) {

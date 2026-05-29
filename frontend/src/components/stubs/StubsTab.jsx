@@ -172,7 +172,7 @@ const StubsTab = () => {
                   className="btn-secondary" 
                   title="Test Stub in API Tester"
                   style={{ padding: '6px 12px', fontSize: '0.85rem', borderRadius: '6px', background: 'rgba(59, 130, 246, 0.1)', color: '#60a5fa', border: '1px solid rgba(59, 130, 246, 0.2)' }} 
-                  onClick={() => navigate('/service-virtualization/api', { state: { request: { endpoint: selectedStub.endpoint, method: selectedStub.method, category: selectedStub.category, baseUrl: selectedStub.baseUrl } } })}>
+                  onClick={() => navigate('/service-virtualization/api', { state: { request: { endpoint: selectedStub.endpoint, method: selectedStub.method, category: selectedStub.category, baseUrl: selectedStub.baseUrl, body: selectedStub.requestMatcher } } })}>
                   🧪 Test
                 </button>
                 <button 
