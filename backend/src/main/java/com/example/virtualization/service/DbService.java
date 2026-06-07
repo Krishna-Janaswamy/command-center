@@ -25,7 +25,7 @@ public class DbService {
         jdbc.execute("CREATE TABLE IF NOT EXISTS stub_versions (versionId TEXT PRIMARY KEY, stubId TEXT NOT NULL, version TEXT NOT NULL, versionTag TEXT, responseStatus INTEGER DEFAULT 200, responseBody TEXT, responseHeaders TEXT, isActive INTEGER DEFAULT 0, createdAt DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (stubId) REFERENCES stubs(id) ON DELETE CASCADE)");
 
         // requests
-        jdbc.execute("CREATE TABLE IF NOT EXISTS requests (id TEXT PRIMARY KEY, method TEXT NOT NULL, url TEXT NOT NULL, baseUrl TEXT, endpoint TEXT, headers TEXT NOT NULL, body TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, status INTEGER, response TEXT, responseHeaders TEXT, isRecorded INTEGER DEFAULT 0, category TEXT DEFAULT 'other', ownerGroup TEXT DEFAULT 'admin', source TEXT DEFAULT 'live-api')");
+        jdbc.execute("CREATE TABLE IF NOT EXISTS requests (id TEXT PRIMARY KEY, method TEXT NOT NULL, url TEXT NOT NULL, baseUrl TEXT, endpoint TEXT, headers TEXT NOT NULL, body TEXT, bodyS3Key TEXT, timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP, status INTEGER, response TEXT, responseS3Key TEXT, responseHeaders TEXT, isRecorded INTEGER DEFAULT 0, category TEXT DEFAULT 'other', ownerGroup TEXT DEFAULT 'admin', source TEXT DEFAULT 'live-api')");
 
         // settings
         jdbc.execute("CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT)");

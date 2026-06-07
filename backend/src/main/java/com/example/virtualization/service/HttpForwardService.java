@@ -23,12 +23,29 @@ public class HttpForwardService {
 
     public HttpForwardService() {
         this.httpClient = HttpClient.newBuilder()
+                .version(HttpClient.Version.HTTP_1_1)
                 .connectTimeout(Duration.ofSeconds(5))
                 .build();
     }
 
     public OutboundResponse send(String url, String method, Map<String, String> headers, String body, Map<String, String> params, int timeoutSeconds) {
         try {
+            if (url == null) return new OutboundResponse(-1, -1, null, null, "URL is missing");
+            
+            // Handle missing schema or relative urls commonly used when referencing self
+            if (url.startsWith("/")) {
+                url = "http://127.0.0.1:3001" + url;
+            } else if (!url.toLowerCase().startsWith("http://") && !url.toLowerCase().startsWith("https://")) {
+                url = "http://" + url;
+            }
+            
+            // Bypass Vite dev server proxy for mock URLs to prevent connection issues
+            if (url.contains("localhost:8080/api/mock")) {
+                url = url.replace("localhost:8080", "127.0.0.1:3001");
+            } else if (url.contains("localhost:8080/api/proxy-external")) {
+                url = url.replace("localhost:8080", "127.0.0.1:3001");
+            }
+
             // Append params to URL
             if (params != null && !params.isEmpty()) {
                 StringBuilder query = new StringBuilder(url.contains("?") ? "&" : "?");

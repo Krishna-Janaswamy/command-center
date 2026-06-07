@@ -1,0 +1,57 @@
+services:
+  localstack:
+    image: localstack/localstack:2.2.0
+    environment:
+      - SERVICES=s3,sqs
+      - DEFAULT_REGION=us-east-1
+      - DATA_DIR=/tmp/localstack/data
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - DEBUG=1
+    # localstack runs on the internal network; do not publish host ports by default
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/health"]
+      interval: 10s
+      retries: 10
+    volumes:
+      - localstack_data:/tmp/localstack
+
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: service_virtualization
+    # postgres is used by backend on the compose network; avoid publishing 5432 to host to prevent conflicts
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      retries: 10
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/service_virtualization
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      AWS_ENDPOINT: http://localstack:4566
+      AWS_REGION: us-east-1
+      AWS_S3_BUCKET: service-virtualization-other
+      AWS_SQS_ENABLED: 'true'
+      AWS_STORAGE_ENABLED: 'true'
+      JWT_SECRET: change-this-secret
+    ports:
+      - '3001:3001'
+    depends_on:
+      localstack:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+
+volumes:
+  localstack_data:
+  postgres_data:

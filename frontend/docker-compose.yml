@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '5173:5173'
+    environment:
+      # Point the frontend at your backend when running locally, e.g.:
+      # VITE_BACKEND_URL=http://host.docker.internal:3001
+      # Set in your environment or override when running compose.
+      - VITE_BACKEND_URL=
+

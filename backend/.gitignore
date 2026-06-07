@@ -1,0 +1,21 @@
+# Backend Java/Maven ignores
+target/
+*.class
+
+# Local DB files
+data/*.db
+
+# Maven wrapper
+.mvn/
+!/.mvn/wrapper/maven-wrapper.jar
+
+# IDEs
+.idea/
+.vscode/
+
+# Logs
+logs/
+*.log
+
+# Environment
+.env

@@ -1,0 +1,19 @@
+# Frontend Node/Vite ignores
+node_modules/
+dist/
+.vite/
+
+# Environment
+.env
+.env.local
+
+# IDEs
+.idea/
+.vscode/
+
+# Logs
+npm-debug.log*
+yarn-error.log*
+
+# macOS
+.DS_Store

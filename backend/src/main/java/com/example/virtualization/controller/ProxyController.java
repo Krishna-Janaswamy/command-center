@@ -2,6 +2,7 @@ package com.example.virtualization.controller;
 
 import com.example.virtualization.model.Stub;
 import com.example.virtualization.model.User;
+import com.example.virtualization.service.AwsStorageService;
 import com.example.virtualization.service.HttpForwardService;
 import com.example.virtualization.service.JwtService;
 import com.example.virtualization.stub.service.StubMatchingService;
@@ -32,13 +33,15 @@ public class ProxyController {
     private final StubService stubService;
     private final JwtService jwtService;
     private final JdbcTemplate jdbc;
+    private final AwsStorageService awsStorageService;
 
-    public ProxyController(HttpForwardService httpForwardService, StubMatchingService stubMatchingService, StubService stubService, JwtService jwtService, JdbcTemplate jdbc) {
+    public ProxyController(HttpForwardService httpForwardService, StubMatchingService stubMatchingService, StubService stubService, JwtService jwtService, JdbcTemplate jdbc, AwsStorageService awsStorageService) {
         this.httpForwardService = httpForwardService;
         this.stubMatchingService = stubMatchingService;
         this.stubService = stubService;
         this.jwtService = jwtService;
         this.jdbc = jdbc;
+        this.awsStorageService = awsStorageService;
     }
 
     @RequestMapping(value = {"/proxy-external", "/proxy-request"}, method = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.PATCH})
@@ -126,8 +129,7 @@ public class ProxyController {
                     try { Thread.sleep(stub.getDelay()); } catch (InterruptedException ignored) {}
                 }
                 String reqId = UUID.randomUUID().toString();
-                jdbc.update("INSERT INTO requests (id, method, url, baseUrl, endpoint, headers, body, status, response, responseHeaders, isRecorded, category, ownerGroup, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                        reqId, request.getMethod(), url, targetHost, path, requestHeaders.toString(), body, stub.getResponseStatus(), stub.getResponseBody(), stub.getResponseHeaders() != null ? stub.getResponseHeaders() : "", 1, stub.getCategory() != null ? stub.getCategory() : "other", user.getAdGroup(), "stub");
+                saveRecordedRequest(reqId, request.getMethod(), url, targetHost, path, requestHeaders.toString(), body, stub.getResponseStatus(), stub.getResponseBody(), stub.getResponseHeaders() != null ? stub.getResponseHeaders() : "", 1, stub.getCategory() != null ? stub.getCategory() : "other", user.getAdGroup(), "stub");
 
                 ResponseEntity.BodyBuilder builder = ResponseEntity.status(stub.getResponseStatus())
                         .header("X-Response-Source", "stub")
@@ -167,8 +169,7 @@ public class ProxyController {
 
         // Record request
         String reqId = UUID.randomUUID().toString();
-        jdbc.update("INSERT INTO requests (id, method, url, baseUrl, endpoint, headers, body, status, response, responseHeaders, isRecorded, category, ownerGroup, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                reqId, request.getMethod(), url, targetHost, path, requestHeaders.toString(), body, res.statusCode, res.body, res.headers != null ? res.headers.toString() : "", 1, "other", user.getAdGroup(), "live-api");
+        saveRecordedRequest(reqId, request.getMethod(), url, targetHost, path, requestHeaders.toString(), body, res.statusCode, res.body, res.headers != null ? res.headers.toString() : "", 1, "other", user.getAdGroup(), "live-api");
 
         if (res.error != null) {
             if (useMock) {
@@ -176,8 +177,7 @@ public class ProxyController {
                 Stub stub = stubMatchingService.findMatchingStub(request.getMethod(), url, body, targetHost);
                 if (stub != null) {
                     String fallbackReqId = UUID.randomUUID().toString();
-                    jdbc.update("INSERT INTO requests (id, method, url, baseUrl, endpoint, headers, body, status, response, responseHeaders, isRecorded, category, ownerGroup, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                            fallbackReqId, request.getMethod(), url, targetHost, path, requestHeaders.toString(), body, stub.getResponseStatus(), stub.getResponseBody(), stub.getResponseHeaders() != null ? stub.getResponseHeaders() : "", 1, stub.getCategory() != null ? stub.getCategory() : "other", user.getAdGroup(), "stub (fallback)");
+                    saveRecordedRequest(fallbackReqId, request.getMethod(), url, targetHost, path, requestHeaders.toString(), body, stub.getResponseStatus(), stub.getResponseBody(), stub.getResponseHeaders() != null ? stub.getResponseHeaders() : "", 1, stub.getCategory() != null ? stub.getCategory() : "other", user.getAdGroup(), "stub (fallback)");
 
                     ResponseEntity.BodyBuilder builder = ResponseEntity.status(stub.getResponseStatus())
                             .header("X-Response-Source", "stub (fallback)")
@@ -292,5 +292,26 @@ public class ProxyController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("{\"error\": \"Backend Proxy Exception: " + e.getClass().getName() + " - " + e.getMessage() + "\"}");
         }
+    }
+
+    private void saveRecordedRequest(String reqId, String method, String url, String baseUrl, String endpoint, String headers, String body, int status, String response, String responseHeaders, int isRecorded, String category, String ownerGroup, String source) {
+        String requestBody = body;
+        String responseBody = response;
+        String bodyS3Key = null;
+        String responseS3Key = null;
+
+        if (awsStorageService.isEnabled()) {
+            if (requestBody != null) {
+                bodyS3Key = awsStorageService.upload("requests/" + reqId + "/body.txt", requestBody);
+                requestBody = null;
+            }
+            if (responseBody != null) {
+                responseS3Key = awsStorageService.upload("requests/" + reqId + "/response.txt", responseBody);
+                responseBody = null;
+            }
+        }
+
+        jdbc.update("INSERT INTO requests (id, method, url, baseUrl, endpoint, headers, body, bodyS3Key, status, response, responseS3Key, responseHeaders, isRecorded, category, ownerGroup, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                reqId, method, url, baseUrl, endpoint, headers, requestBody, bodyS3Key, status, responseBody, responseS3Key, responseHeaders, isRecorded, category, ownerGroup, source);
     }
 }

@@ -8,9 +8,11 @@ public class Request {
     private String endpoint;
     private String headers;
     private String body;
+    private String bodyS3Key;
     private String timestamp;
     private Integer status;
     private String response;
+    private String responseS3Key;
     private String responseHeaders;
     private boolean isRecorded;
     private String category;
@@ -41,6 +43,9 @@ public class Request {
     public String getBody() { return body; }
     public void setBody(String body) { this.body = body; }
 
+    public String getBodyS3Key() { return bodyS3Key; }
+    public void setBodyS3Key(String bodyS3Key) { this.bodyS3Key = bodyS3Key; }
+
     public String getTimestamp() { return timestamp; }
     public void setTimestamp(String timestamp) { this.timestamp = timestamp; }
 
@@ -49,6 +54,9 @@ public class Request {
 
     public String getResponse() { return response; }
     public void setResponse(String response) { this.response = response; }
+
+    public String getResponseS3Key() { return responseS3Key; }
+    public void setResponseS3Key(String responseS3Key) { this.responseS3Key = responseS3Key; }
 
     public String getResponseHeaders() { return responseHeaders; }
     public void setResponseHeaders(String responseHeaders) { this.responseHeaders = responseHeaders; }

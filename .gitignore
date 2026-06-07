@@ -1,15 +1,38 @@
-# Java
-backend/target/
-**/target/
-*.class
-*.jar
-*.war
+# macOS
+.DS_Store
 
 # Node
-frontend/node_modules/
-frontend/dist/
+node_modules/
+npm-debug.log*
+yarn-error.log*
 
-# IDE
+# Vite / build
+dist/
+.vite/
+
+# Java / Maven
+target/
+*.class
+
+# Maven wrapper
+.mvn/
+!/.mvn/wrapper/maven-wrapper.jar
+
+# IDEs
+.idea/
 .vscode/
-.DS_Store
-prompt.md
+*.iml
+
+# Logs
+logs/
+*.log
+
+# Environment
+.env
+.env.local
+
+# Docker
+docker-compose.override.yml
+
+# DB
+*.db

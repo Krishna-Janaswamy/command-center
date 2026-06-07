@@ -2,6 +2,7 @@ package com.example.virtualization.controller;
 
 import com.example.virtualization.model.Request;
 import com.example.virtualization.model.User;
+import com.example.virtualization.service.AwsStorageService;
 import com.example.virtualization.service.JwtService;
 import com.example.virtualization.util.SecurityHelper;
 import org.springframework.http.HttpStatus;
@@ -17,10 +18,12 @@ import java.util.List;
 public class RequestController {
     private final JdbcTemplate jdbc;
     private final JwtService jwtService;
+    private final AwsStorageService awsStorageService;
 
-    public RequestController(JdbcTemplate jdbc, JwtService jwtService) {
+    public RequestController(JdbcTemplate jdbc, JwtService jwtService, AwsStorageService awsStorageService) {
         this.jdbc = jdbc;
         this.jwtService = jwtService;
+        this.awsStorageService = awsStorageService;
     }
 
     @GetMapping("/recorded-requests")
@@ -46,18 +49,29 @@ public class RequestController {
             req.setEndpoint(rs.getString("endpoint"));
             req.setHeaders(rs.getString("headers"));
             req.setBody(rs.getString("body"));
+            req.setBodyS3Key(rs.getString("bodyS3Key"));
             req.setTimestamp(rs.getString("timestamp"));
             req.setStatus(rs.getInt("status"));
             req.setResponse(rs.getString("response"));
+            req.setResponseS3Key(rs.getString("responseS3Key"));
             req.setResponseHeaders(rs.getString("responseHeaders"));
             req.setRecorded(rs.getInt("isRecorded") == 1);
             req.setCategory(rs.getString("category"));
             req.setOwnerGroup(rs.getString("ownerGroup"));
-            
+
             try {
                 req.setSource(rs.getString("source"));
             } catch (Exception e) {}
-            
+
+            if (awsStorageService.isEnabled()) {
+                if ((req.getBody() == null || req.getBody().isBlank()) && req.getBodyS3Key() != null) {
+                    req.setBody(awsStorageService.download(req.getBodyS3Key()));
+                }
+                if ((req.getResponse() == null || req.getResponse().isBlank()) && req.getResponseS3Key() != null) {
+                    req.setResponse(awsStorageService.download(req.getResponseS3Key()));
+                }
+            }
+
             return req;
         });
 
