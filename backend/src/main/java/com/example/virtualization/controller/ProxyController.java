@@ -34,6 +34,7 @@ public class ProxyController {
     private final JwtService jwtService;
     private final JdbcTemplate jdbc;
     private final AwsStorageService awsStorageService;
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ProxyController.class);
 
     public ProxyController(HttpForwardService httpForwardService, StubMatchingService stubMatchingService, StubService stubService, JwtService jwtService, JdbcTemplate jdbc, AwsStorageService awsStorageService) {
         this.httpForwardService = httpForwardService;
@@ -131,9 +132,21 @@ public class ProxyController {
                 String reqId = UUID.randomUUID().toString();
                 saveRecordedRequest(reqId, request.getMethod(), url, targetHost, path, requestHeaders.toString(), body, stub.getResponseStatus(), stub.getResponseBody(), stub.getResponseHeaders() != null ? stub.getResponseHeaders() : "", 1, stub.getCategory() != null ? stub.getCategory() : "other", user.getAdGroup(), "stub");
 
-                ResponseEntity.BodyBuilder builder = ResponseEntity.status(stub.getResponseStatus())
-                        .header("X-Response-Source", "stub")
-                        .header("X-Recorded-Id", reqId);
+                int stubStatus = stub.getResponseStatus();
+                if (stubStatus < 100 || stubStatus > 599) {
+                    log.warn("Invalid response status {} for stub {} - falling back to 200", stubStatus, stub.getId());
+                    stubStatus = 200;
+                }
+                ResponseEntity.BodyBuilder builder;
+                try {
+                    builder = ResponseEntity.status(stubStatus)
+                            .header("X-Response-Source", "stub")
+                            .header("X-Recorded-Id", reqId);
+                } catch (IllegalArgumentException e) {
+                    log.error("Invalid status for stub {}: {}", stub.getId(), e.getMessage());
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .body("{\"error\": \"Invalid response status configured for stub\"}");
+                }
 
                 if (stub.getResponseHeaders() != null && !stub.getResponseHeaders().isEmpty() && !stub.getResponseHeaders().equals("{}")) {
                     try {
@@ -179,9 +192,21 @@ public class ProxyController {
                     String fallbackReqId = UUID.randomUUID().toString();
                     saveRecordedRequest(fallbackReqId, request.getMethod(), url, targetHost, path, requestHeaders.toString(), body, stub.getResponseStatus(), stub.getResponseBody(), stub.getResponseHeaders() != null ? stub.getResponseHeaders() : "", 1, stub.getCategory() != null ? stub.getCategory() : "other", user.getAdGroup(), "stub (fallback)");
 
-                    ResponseEntity.BodyBuilder builder = ResponseEntity.status(stub.getResponseStatus())
-                            .header("X-Response-Source", "stub (fallback)")
-                            .header("X-Recorded-Id", fallbackReqId);
+                    int stubStatus2 = stub.getResponseStatus();
+                    if (stubStatus2 < 100 || stubStatus2 > 599) {
+                        log.warn("Invalid response status {} for stub {} - falling back to 200", stubStatus2, stub.getId());
+                        stubStatus2 = 200;
+                    }
+                    ResponseEntity.BodyBuilder builder;
+                    try {
+                        builder = ResponseEntity.status(stubStatus2)
+                                .header("X-Response-Source", "stub (fallback)")
+                                .header("X-Recorded-Id", fallbackReqId);
+                    } catch (IllegalArgumentException e) {
+                        log.error("Invalid status for fallback stub {}: {}", stub.getId(), e.getMessage());
+                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .body("{\"error\": \"Invalid response status configured for stub\"}");
+                    }
                     if (stub.getResponseHeaders() != null && !stub.getResponseHeaders().isEmpty() && !stub.getResponseHeaders().equals("{}")) {
                         try {
                             com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();

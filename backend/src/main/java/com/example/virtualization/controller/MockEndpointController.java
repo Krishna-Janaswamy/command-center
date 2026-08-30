@@ -14,6 +14,7 @@ import java.util.Map;
 public class MockEndpointController {
 
     private final StubService stubService;
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MockEndpointController.class);
 
     public MockEndpointController(StubService stubService) {
         this.stubService = stubService;
@@ -37,7 +38,20 @@ public class MockEndpointController {
             }
         }
 
-        ResponseEntity.BodyBuilder builder = ResponseEntity.status(stub.getResponseStatus());
+        int statusCode = stub.getResponseStatus();
+        if (statusCode < 100 || statusCode > 599) {
+            log.warn("Invalid response status {} for stub {} - falling back to 200", statusCode, id);
+            statusCode = 200;
+        }
+
+        ResponseEntity.BodyBuilder builder;
+        try {
+            builder = ResponseEntity.status(statusCode);
+        } catch (IllegalArgumentException e) {
+            log.error("Failed to set response status {} for stub {}: {}", statusCode, id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("{\"error\": \"Invalid response status configured for mock endpoint\"}");
+        }
 
         // Apply headers if present
         if (stub.getResponseHeaders() != null && !stub.getResponseHeaders().isEmpty() && !stub.getResponseHeaders().equals("{}")) {
@@ -62,6 +76,13 @@ public class MockEndpointController {
             }
         }
 
-        return builder.body(stub.getResponseBody());
+        try {
+            String respBody = stub.getResponseBody();
+            return builder.body(respBody == null ? "" : respBody);
+        } catch (Exception e) {
+            log.error("Error building mock response for stub {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("{\"error\": \"Failed to build mock response\"}");
+        }
     }
 }
