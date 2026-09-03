@@ -12,9 +12,16 @@ const RegisterPage = ({ onRegister }) => {
     try {
       const res = await authApi.register(formData);
       localStorage.setItem('token', res.data.token);
-      const userRes = await authApi.verify();
-      onRegister(userRes.data);
-      navigate('/');
+      // server now returns the created user to avoid extra verify round-trip
+      const user = res.data && res.data.user ? res.data.user : null;
+      if (user) {
+        onRegister(user);
+      } else {
+        // fallback to verify if user not returned
+        const userRes = await authApi.verify();
+        onRegister(userRes.data);
+      }
+      navigate('/', { replace: true });
     } catch (err) {
       setError(err.response?.data?.error || 'Registration failed');
     }

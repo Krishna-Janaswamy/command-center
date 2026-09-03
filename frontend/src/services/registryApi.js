@@ -4,6 +4,35 @@ const api = axios.create({
   baseURL: '/api'
 });
 
+// Auth requests go directly to Go backend on port 3001 (login/register)
+const authApiDirect = axios.create({
+  baseURL: 'http://localhost:3001/api'
+});
+
+// Mirror same auth interceptor so authApiDirect sends stored token
+authApiDirect.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+authApiDirect.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      const url = error.config && error.config.url ? error.config.url : '';
+      // Don't auto-redirect on verify-token (it is used to check session)
+      if (!url.endsWith('/auth/verify-token')) {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
@@ -16,17 +45,20 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/login';
+      const url = error.config && error.config.url ? error.config.url : '';
+      if (!url.endsWith('/auth/verify-token')) {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }
 );
 
 export const authApi = {
-  login: (credentials) => api.post('/auth/login', credentials),
-  register: (data) => api.post('/auth/register', data),
-  verify: () => api.get('/auth/verify-token'),
+  login: (credentials) => authApiDirect.post('/auth/login', credentials),
+  register: (data) => authApiDirect.post('/auth/register', data),
+  verify: () => authApiDirect.get('/auth/verify-token'),
   logout: () => {
     localStorage.removeItem('token');
     return api.post('/auth/logout');

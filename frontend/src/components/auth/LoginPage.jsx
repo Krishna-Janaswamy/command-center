@@ -13,9 +13,15 @@ const LoginPage = ({ onLogin }) => {
     try {
       const res = await authApi.login({ username, password });
       localStorage.setItem('token', res.data.token);
-      const userRes = await authApi.verify();
-      onLogin(userRes.data);
-      navigate('/');
+      // server may return user in response to avoid extra verify round-trip
+      const user = res.data && res.data.user ? res.data.user : null;
+      if (user) {
+        onLogin(user);
+      } else {
+        const userRes = await authApi.verify();
+        onLogin(userRes.data);
+      }
+      navigate('/', { replace: true });
     } catch (err) {
       setError(err.response?.data?.error || 'Login failed');
     }

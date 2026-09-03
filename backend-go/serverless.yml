@@ -1,0 +1,46 @@
+service: service-virtualization-auth
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: go1.x
+  region: us-east-1
+  stage: dev
+
+plugins:
+  - serverless-plugin-go-build
+  - serverless-offline
+
+package:
+  individually: true
+
+functions:
+  auth:
+    handler: cmd/auth
+    description: Auth endpoints (register, login, verify-token)
+    environment:
+      JWT_SECRET: ${env:JWT_SECRET:'change-this-secret'}
+      DATABASE_URL: ${env:DATABASE_URL:''}
+    events:
+      - http:
+          path: /api/auth/register
+          method: post
+          cors: true
+      - http:
+          path: /api/auth/login
+          method: post
+          cors: true
+      - http:
+          path: /api/auth/verify-token
+          method: get
+          cors: true
+
+custom:
+  goBuild:
+    ldflags: -s -w
+    goos: linux
+    goarch: amd64
+  serverless-offline:
+    httpPort: 3001
+    lambdaPort: 3002

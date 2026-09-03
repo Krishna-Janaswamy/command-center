@@ -27,6 +27,30 @@ function App() {
     const verifyUser = async () => {
       const token = localStorage.getItem('token');
       if (token) {
+        // Temporary dev bypass: try to parse JWT payload locally to avoid
+        // an immediate network round-trip that can cause racey redirects.
+        try {
+          const parts = token.split('.');
+          if (parts.length === 3) {
+            const payload = parts[1];
+            // base64url -> base64
+            const b64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+            const json = decodeURIComponent(
+              atob(b64)
+                .split('')
+                .map(function(c) {
+                  return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                })
+                .join('')
+            );
+            const claims = JSON.parse(json);
+            setUser({ username: claims.sub, role: claims.role, adGroup: claims.adGroup });
+            setLoading(false);
+            return;
+          }
+        } catch (err) {
+          // If parsing fails, fall back to server verify
+        }
         try {
           const res = await authApi.verify();
           setUser(res.data);

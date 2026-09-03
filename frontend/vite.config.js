@@ -6,8 +6,9 @@ export default defineConfig({
   server: {
     port: 8080,
     proxy: {
-      '/api': 'http://localhost:3001',
-      '/virtualize': 'http://localhost:3001'
+      // Proxy non-auth API calls to Spring backend on port 3002
+      '/api': 'http://localhost:3002',
+      '/virtualize': 'http://localhost:3002'
     }
   }
 });
