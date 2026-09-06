@@ -6,9 +6,9 @@ export default defineConfig({
   server: {
     port: 8080,
     proxy: {
-      // Proxy non-auth API calls to Spring backend on port 3002
-      '/api': 'http://localhost:3002',
-      '/virtualize': 'http://localhost:3002'
+      // Proxy frontend API calls to the Go Lambda-compatible local server.
+      '/api': 'http://localhost:3001',
+      '/virtualize': 'http://localhost:3001'
     }
   }
 });

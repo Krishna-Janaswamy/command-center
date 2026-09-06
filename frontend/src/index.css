@@ -374,3 +374,180 @@ pre {
 .endpoint-item:hover {
   background: rgba(0,0,0,0.05);
 }
+
+/* Responsive application shell */
+@media (max-width: 900px) {
+  .app-shell {
+    display: block;
+  }
+
+  .sidebar {
+    width: 100%;
+    border-right: 0;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .sidebar .brand {
+    padding: 16px 20px 10px;
+  }
+
+  .sidebar nav {
+    flex-direction: row;
+    gap: 8px;
+    padding: 0 12px 12px;
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+
+  .sidebar nav a {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    padding: 10px 12px;
+  }
+
+  main {
+    max-height: none;
+    min-width: 0;
+    overflow: visible;
+  }
+
+  header {
+    height: auto;
+    min-height: 64px;
+    padding: 12px 20px;
+  }
+
+  .content {
+    padding: 20px;
+    overflow: visible;
+  }
+
+  .grid-2,
+  .grid-3,
+  .grid-4 {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .dashboard-hero {
+    padding: 36px 28px !important;
+    margin-bottom: 28px !important;
+  }
+
+  .dashboard-hero h1 {
+    font-size: 2.35rem !important;
+    line-height: 1.1;
+  }
+
+  .dashboard-actions {
+    flex-wrap: wrap;
+  }
+
+  .dashboard-actions .btn,
+  .dashboard-actions .btn-secondary {
+    flex: 1 1 180px;
+  }
+
+  .glass-panel {
+    min-width: 0;
+    padding: 18px;
+  }
+
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .modal-content {
+    width: 100%;
+    max-width: none;
+    max-height: 92vh;
+    border-radius: 14px 14px 0 0;
+  }
+
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 600px) {
+  h1 { font-size: 1.65rem; margin-bottom: 18px; }
+  h2 { font-size: 1.25rem; }
+
+  header {
+    align-items: flex-start;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  header > div:last-child {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  header > div:last-child > div {
+    text-align: left !important;
+  }
+
+  .content {
+    padding: 14px;
+  }
+
+  .dashboard-hero {
+    padding: 28px 20px !important;
+    border-radius: 14px !important;
+  }
+
+  .dashboard-hero h1 {
+    font-size: 2rem !important;
+  }
+
+  .dashboard-hero p {
+    font-size: 1rem !important;
+    margin-bottom: 24px !important;
+  }
+
+  .dashboard-actions {
+    flex-direction: column;
+  }
+
+  .dashboard-actions .btn,
+  .dashboard-actions .btn-secondary {
+    width: 100%;
+    flex-basis: auto;
+  }
+
+  .tabs {
+    gap: 4px;
+    overflow-x: auto;
+    margin-bottom: 16px;
+  }
+
+  .tab {
+    flex: 0 0 auto;
+    padding: 10px 12px;
+    white-space: nowrap;
+  }
+
+  .modal-body,
+  .modal-header,
+  .modal-footer {
+    padding: 16px;
+  }
+
+  .modal-footer {
+    flex-wrap: wrap;
+  }
+
+  .modal-footer button {
+    flex: 1 1 140px;
+  }
+
+  .btn,
+  .btn-secondary,
+  .btn-danger {
+    min-height: 42px;
+  }
+}

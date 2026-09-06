@@ -1,8 +1,13 @@
-# Service Virtualization - Go backend (AWS Lambda auth scaffold)
+# Service Virtualization - Go backend
 
-This folder contains the Go backend for service virtualization, implemented as a single AWS Lambda function with an HTTP router.
+This folder contains the Go backend split into three AWS Lambda functions. The implementation follows the existing Spring Boot behavior while separating control-plane management, capture, and runtime serving.
 
-The Lambda entrypoint is `cmd/auth/main.go`, and the API Gateway routes are defined in `serverless.yml`.
+Lambda entry points:
+
+- `cmd/management`: API registry, manual stubs, request history, versions, and analytics.
+- `cmd/capture`: receives a target request, calls the target, writes bodies to S3, and writes metadata to Aurora/Postgres.
+- `cmd/runtime`: receives application traffic such as `POST /claim`, checks virtualization, matches an enabled stub, reads an S3 response when configured, and returns it.
+- `cmd/auth`: existing authentication endpoints.
 
 ## Setup
 
@@ -23,6 +28,9 @@ go build ./...
 
 - `JWT_SECRET` - secret used to sign tokens (default: `change-this-secret`)
 - `DATABASE_URL` - optional Postgres connection string. Example: `postgres://user:pass@host:5432/dbname`
+- `S3_BUCKET` - S3 bucket for captured request and response bodies. If absent, local memory storage is used.
+- `AWS_REGION` - AWS region used by the S3 client.
+- `AWS_ENDPOINT` - optional LocalStack or compatible S3 endpoint.
 
 ## Lambda / API Gateway deployment
 
@@ -38,12 +46,15 @@ export JWT_SECRET="your-production-secret"
 serverless deploy
 ```
 
-The Serverless config is in `serverless.yml` and maps the following routes to the same Lambda:
+The Serverless config is in `serverless.yml` and maps routes to separate functions:
 
 - `POST /api/auth/register`
 - `POST /api/auth/login`
 - `GET /api/auth/verify-token`
 - `GET /api/admin-only` (RBAC-protected example)
+- `/api/registry` and `/api/stubs` (management)
+- `/api/capture` (capture)
+- `/{proxy+}` (runtime virtualization)
 
 ## RBAC
 

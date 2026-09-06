@@ -1,4 +1,4 @@
-service: service-virtualization-auth
+service: service-virtualization
 
 frameworkVersion: '3'
 
@@ -35,10 +35,82 @@ functions:
           path: /api/auth/verify-token
           method: get
           cors: true
+        - http:
+          path: /api/auth/logout
+          method: post
+          cors: true
+  management:
+    handler: cmd/management
+    description: API registry, manual stubs, versions, history, and analytics
+    events:
+      - http:
+          path: /api/registry
+          method: any
+          cors: true
+      - http:
+          path: /api/registry/{id}
+          method: any
+          cors: true
+      - http:
+          path: /api/stubs
+          method: any
+          cors: true
+      - http:
+          path: /api/stubs/{id}
+          method: any
+          cors: true
+      - http:
+          path: /api/stubs/{id}/{proxy+}
+          method: any
+          cors: true
+      - http:
+          path: /api/requests
+          method: get
+          cors: true
+      - http:
+          path: /api/recorded-requests
+          method: get
+          cors: true
+      - http:
+          path: /api/analytics
+          method: get
+          cors: true
+        - http:
+          path: /api/settings
+          method: any
+          cors: true
+        - http:
+          path: /api/settings/{key}
+          method: any
+          cors: true
+        - http:
+          path: /api/requests/{id}
+          method: any
+          cors: true
+        - http:
+          path: /api/health-check
+          method: post
+          cors: true
+  capture:
+    handler: cmd/capture
+    description: Calls target APIs and captures responses for stub creation
+    events:
+      - http:
+          path: /api/capture
+          method: post
+          cors: true
+  runtime:
+    handler: cmd/runtime
+    description: Runtime virtualization and request matching
+    events:
+      - http:
+          path: /{proxy+}
+          method: any
+          cors: true
 
 custom:
   goBuild:
-    ldflags: -s -w
+    ldflags: '-s -w'
     goos: linux
     goarch: amd64
   serverless-offline:

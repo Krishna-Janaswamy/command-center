@@ -6,7 +6,7 @@ const Dashboard = () => {
 
   return (
     <div className="fade-in" style={{ padding: '12px 0' }}>
-      <div style={{ 
+      <div className="dashboard-hero" style={{ 
         background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(59, 130, 246, 0.05) 100%)',
         borderRadius: '20px',
         padding: '56px 48px',
@@ -23,7 +23,7 @@ const Dashboard = () => {
           <p style={{ color: 'var(--text-muted)', fontSize: '1.15rem', maxWidth: '650px', lineHeight: '1.6', marginBottom: '36px' }}>
             The ultimate hub for API orchestration. Manage your external registries, monitor real-time health, and seamlessly virtualize network with intelligent stubs.
           </p>
-          <div style={{ display: 'flex', gap: '16px' }}>
+          <div className="dashboard-actions" style={{ display: 'flex', gap: '16px' }}>
             <button className="btn" style={{ padding: '14px 28px', fontSize: '1rem', borderRadius: '8px' }} onClick={() => navigate('/api-registry')}>
               Register an API
             </button>
@@ -40,7 +40,7 @@ const Dashboard = () => {
         }} />
       </div>
 
-      <div className="grid-3">
+      <div className="grid-3 dashboard-cards">
         <div className="glass-panel" style={{ transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', cursor: 'pointer' }} onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-6px)'; e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.2)'; e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.4)'; }} onMouseOut={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'var(--glass-shadow)'; e.currentTarget.style.borderColor = 'var(--border-color)'; }} onClick={() => navigate('/api-registry')}>
           <div style={{ fontSize: '2.5rem', marginBottom: '20px' }}>📋</div>
           <h3 style={{ marginBottom: '12px', fontSize: '1.3rem' }}>API Registry</h3>
