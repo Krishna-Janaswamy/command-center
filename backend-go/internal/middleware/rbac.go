@@ -11,7 +11,7 @@ import (
 func RequireRoles(jwtSvc *authpkg.JwtService, allowedRoles ...string) func(http.Handler) http.Handler {
 	rolesMap := make(map[string]struct{}, len(allowedRoles))
 	for _, r := range allowedRoles {
-		rolesMap[r] = struct{}{}
+		rolesMap[strings.ToLower(r)] = struct{}{}
 	}
 
 	return func(next http.Handler) http.Handler {
@@ -28,7 +28,15 @@ func RequireRoles(jwtSvc *authpkg.JwtService, allowedRoles ...string) func(http.
 				return
 			}
 
-			if _, ok := rolesMap[claims.Role]; !ok {
+			isAdmin := strings.EqualFold(claims.Subject, "admin") ||
+				strings.EqualFold(claims.AdGroup, "admin") ||
+				strings.EqualFold(claims.AdGroup, "QED_DEV_OPS") ||
+				strings.EqualFold(claims.Role, "admin") ||
+				strings.EqualFold(claims.Role, "Dev Ops")
+
+			_, roleAllowed := rolesMap[strings.ToLower(claims.Role)]
+
+			if !isAdmin && !roleAllowed {
 				http.Error(w, "forbidden: insufficient role", http.StatusForbidden)
 				return
 			}

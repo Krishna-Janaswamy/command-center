@@ -4,6 +4,10 @@ const api = axios.create({
   baseURL: '/api'
 });
 
+function isProxyPath(url = '') {
+  return url.includes('/proxy-request') || url.includes('/proxy-external') || url.includes('proxy-request') || url.includes('proxy-external');
+}
+
 // Auth requests go directly to Go backend on port 3001 (login/register)
 const authApiDirect = axios.create({
   baseURL: 'http://localhost:3001/api'
@@ -34,6 +38,10 @@ authApiDirect.interceptors.response.use(
 );
 
 api.interceptors.request.use((config) => {
+  // Never forward the dashboard JWT to upstream APIs via the proxy.
+  if (isProxyPath(config.url)) {
+    return config;
+  }
   const token = localStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -46,6 +54,10 @@ api.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       const url = error.config && error.config.url ? error.config.url : '';
+      // Proxy upstream 401s are not dashboard auth failures.
+      if (isProxyPath(url)) {
+        return Promise.reject(error);
+      }
       if (!url.endsWith('/auth/verify-token')) {
         localStorage.removeItem('token');
         window.location.href = '/login';

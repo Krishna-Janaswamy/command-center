@@ -5,6 +5,7 @@ import (
     "log"
     "net/http"
     "os"
+    "strings"
 
     "github.com/aws/aws-lambda-go/lambda"
     "github.com/awslabs/aws-lambda-go-api-proxy/httpadapter"
@@ -72,7 +73,13 @@ func requireRolesAdapterLambda(jwtSvc *auth.JwtService, h http.Handler) http.Han
             http.Error(w, "invalid token", http.StatusUnauthorized)
             return
         }
-        if claims.Role != "Dev Ops" {
+        isAdmin := strings.EqualFold(claims.Subject, "admin") ||
+            strings.EqualFold(claims.AdGroup, "admin") ||
+            strings.EqualFold(claims.AdGroup, "QED_DEV_OPS") ||
+            strings.EqualFold(claims.Role, "admin") ||
+            strings.EqualFold(claims.Role, "Dev Ops")
+
+        if !isAdmin {
             http.Error(w, "forbidden: insufficient role", http.StatusForbidden)
             return
         }

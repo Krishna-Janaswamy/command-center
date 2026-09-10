@@ -8,7 +8,6 @@ import { authApi } from './services/registryApi';
 import Dashboard from './common/Dashboard';
 import './index.css';
 
-// Lazy loading placeholders (will implement real components later)
 import ApiRegistry from './components/registry/ApiRegistry';
 import ApiHealth from './components/health/ApiHealth';
 import APITesterTab from './components/tester/APITesterTab';
@@ -20,25 +19,27 @@ import SettingsTab from './components/settings/SettingsTab';
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [navOpen, setNavOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    setNavOpen(false);
+  }, [location.pathname]);
 
   useEffect(() => {
     const verifyUser = async () => {
       const token = localStorage.getItem('token');
       if (token) {
-        // Temporary dev bypass: try to parse JWT payload locally to avoid
-        // an immediate network round-trip that can cause racey redirects.
         try {
           const parts = token.split('.');
           if (parts.length === 3) {
             const payload = parts[1];
-            // base64url -> base64
             const b64 = payload.replace(/-/g, '+').replace(/_/g, '/');
             const json = decodeURIComponent(
               atob(b64)
                 .split('')
-                .map(function(c) {
+                .map(function (c) {
                   return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
                 })
                 .join('')
@@ -49,7 +50,7 @@ function App() {
             return;
           }
         } catch (err) {
-          // If parsing fails, fall back to server verify
+          // fall through to server verify
         }
         try {
           const res = await authApi.verify();
@@ -62,6 +63,19 @@ function App() {
     };
     verifyUser();
   }, []);
+
+  useEffect(() => {
+    if (!navOpen) return undefined;
+    const onKey = (e) => {
+      if (e.key === 'Escape') setNavOpen(false);
+    };
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [navOpen]);
 
   const handleLogout = async () => {
     await authApi.logout();
@@ -84,10 +98,20 @@ function App() {
   }
 
   return (
-    <div className="app-shell fade-in">
-      <Sidebar user={user} />
+    <div className={`app-shell fade-in${navOpen ? ' nav-open' : ''}`}>
+      <button
+        type="button"
+        className="sidebar-backdrop"
+        aria-label="Close navigation"
+        onClick={() => setNavOpen(false)}
+      />
+      <Sidebar user={user} onNavigate={() => setNavOpen(false)} />
       <main>
-        <Header user={user} onLogout={handleLogout} />
+        <Header
+          user={user}
+          onLogout={handleLogout}
+          onMenuClick={() => setNavOpen(true)}
+        />
         <div className="content">
           <Routes>
             <Route path="/" element={<Dashboard />} />

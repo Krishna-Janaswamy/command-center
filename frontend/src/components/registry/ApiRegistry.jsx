@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { registryApi } from '../../services/registryApi';
+import { parseJsonObject } from '../../utils/parseJsonObject';
 import ApiFormModal from './ApiFormModal';
 
 const ApiRegistry = () => {
@@ -14,33 +15,32 @@ const ApiRegistry = () => {
   const navigate = useNavigate();
 
   const toggleExpand = async (id) => {
-    setExpandedApi(prev => prev === id ? null : id);
+    setExpandedApi(prev => (prev === id ? null : id));
     if (expandedApi !== id && !responses[id]) {
-       const api = apis.find(a => a.id === id);
-       if(api) {
-           setLoadingResponse(prev => ({ ...prev, [id]: true }));
-           try {
-               const { healthApi } = await import('../../services/registryApi');
-               const res = await healthApi.check({
-                  url: (api.baseUrl || '') + api.endpoint,
-                  method: api.method,
-                  headers: api.healthCheckHeaders && api.healthCheckHeaders !== '{}' ? JSON.parse(api.healthCheckHeaders) : {},
-                  body: api.healthCheckBody
-               });
-               setResponses(prev => ({ ...prev, [id]: res.data.body }));
-           } catch(err) {
-               setResponses(prev => ({ ...prev, [id]: 'Error fetching response' }));
-           } finally {
-               setLoadingResponse(prev => ({ ...prev, [id]: false }));
-           }
-       }
+      const api = apis.find(a => a.id === id);
+      if (!api) return;
+      setLoadingResponse(prev => ({ ...prev, [id]: true }));
+      try {
+        const { healthApi } = await import('../../services/registryApi');
+        const res = await healthApi.check({
+          url: (api.baseUrl || '') + api.endpoint,
+          method: api.method,
+          headers: parseJsonObject(api.healthCheckHeaders),
+          body: api.healthCheckBody
+        });
+        setResponses(prev => ({ ...prev, [id]: res.data.body }));
+      } catch (err) {
+        setResponses(prev => ({ ...prev, [id]: 'Error fetching response' }));
+      } finally {
+        setLoadingResponse(prev => ({ ...prev, [id]: false }));
+      }
     }
   };
 
   const loadApis = async () => {
     try {
       const res = await registryApi.getAll();
-      setApis(res.data);
+      setApis(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error(err);
     }
@@ -51,146 +51,132 @@ const ApiRegistry = () => {
   }, []);
 
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this API?")) {
-      try {
-        await registryApi.delete(id);
-        loadApis();
-      } catch (err) {
-        console.error("Delete failed", err);
-      }
+    if (!window.confirm('Are you sure you want to delete this API?')) return;
+    try {
+      await registryApi.delete(id);
+      loadApis();
+    } catch (err) {
+      console.error('Delete failed', err);
     }
   };
 
   const filteredApis = apis.filter(api => {
-    if (filter) {
-      const f = filter.toLowerCase();
-      return (api.name && api.name.toLowerCase().includes(f)) ||
-             (api.endpoint && api.endpoint.toLowerCase().includes(f)) ||
-             (api.baseUrl && api.baseUrl.toLowerCase().includes(f));
-    }
-    return true;
+    if (!filter) return true;
+    const f = filter.toLowerCase();
+    return (api.name && api.name.toLowerCase().includes(f)) ||
+      (api.endpoint && api.endpoint.toLowerCase().includes(f)) ||
+      (api.baseUrl && api.baseUrl.toLowerCase().includes(f));
   });
 
+  const formatResponse = (value) => {
+    try {
+      return JSON.stringify(JSON.parse(value), null, 2);
+    } catch (e) {
+      return value || 'No response data.';
+    }
+  };
+
   return (
-    <div className="fade-in">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+    <div className="fade-in registry-page">
+      <div className="page-toolbar">
         <h1>API Registry</h1>
-        <div style={{ display: 'flex', gap: '16px' }}>
-          <input className="form-control" placeholder="Search APIs..." value={filter} onChange={e => setFilter(e.target.value)} style={{ width: '250px' }} />
-          <button className="btn" onClick={() => { setEditApi(null); setShowModal(true); }}>
+        <div className="page-toolbar-actions">
+          <input
+            className="form-control page-toolbar-search"
+            placeholder="Search APIs..."
+            value={filter}
+            onChange={e => setFilter(e.target.value)}
+          />
+          <button type="button" className="btn" onClick={() => { setEditApi(null); setShowModal(true); }}>
             + Register API
           </button>
         </div>
       </div>
 
-      <div className="glass-panel">
-        <table>
-          <thead>
-            <tr>
-              <th style={{ width: '40px' }}></th>
-              <th>Method</th>
-              <th>Name</th>
+      <div className="registry-list">
+        {filteredApis.map(api => {
+          const open = expandedApi === api.id;
+          const fullUrl = `${api.baseUrl || ''}${api.endpoint || ''}` || 'No URL configured';
+          return (
+            <article key={api.id} className={`glass-panel registry-item${open ? ' is-expanded' : ''}`}>
+              <div className="registry-row">
+                <button type="button" className="registry-row-main" onClick={() => toggleExpand(api.id)}>
+                  <span className="registry-chevron" aria-hidden="true">{open ? '▼' : '▶'}</span>
+                  <span className={`badge badge-${api.method === 'GET' ? 'info' : api.method === 'POST' ? 'success' : 'warning'}`}>
+                    {api.method || 'ANY'}
+                  </span>
+                  <span className="registry-item-name" title={api.name}>{api.name || 'Untitled API'}</span>
+                  <span className="registry-item-url" title={fullUrl}>{fullUrl}</span>
+                  {api.category && <span className="badge badge-primary registry-col-category">{api.category}</span>}
+                  {api.environment && <span className="registry-env registry-col-env">{api.environment}</span>}
+                </button>
 
-              <th>Base URL</th>
-              <th>Endpoint</th>
-              <th>Category</th>
-              <th>Environment</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredApis.map(api => (
-              <React.Fragment key={api.id}>
-                <tr style={{ cursor: 'pointer', background: expandedApi === api.id ? 'rgba(0,0,0,0.03)' : 'transparent' }} onClick={() => toggleExpand(api.id)}>
-                  <td style={{ color: 'var(--text-muted)' }}>
-                    {expandedApi === api.id ? '▼' : '▶'}
-                  </td>
-                  <td>
-                    <span className={`badge badge-${api.method === 'GET' ? 'info' : api.method === 'POST' ? 'success' : 'warning'}`}>
-                      {api.method}
-                    </span>
-                  </td>
-                  <td style={{ fontWeight: 500 }}>{api.name}</td>
+                <div className="registry-item-actions">
+                  <button
+                    type="button"
+                    className="btn-secondary registry-action-btn registry-action-test"
+                    onClick={() => navigate('/service-virtualization/api', { state: { request: api } })}
+                  >
+                    Test
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-secondary registry-action-btn"
+                    onClick={() => { setEditApi(api); setShowModal(true); }}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-danger registry-action-btn registry-action-delete"
+                    onClick={() => handleDelete(api.id)}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
 
-                  <td>{api.baseUrl}</td>
-                  <td>{api.endpoint}</td>
-                  <td><span className="badge badge-primary">{api.category}</span></td>
-                  <td>{api.environment}</td>
-                  <td onClick={(e) => e.stopPropagation()}>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <button 
-                        className="btn-secondary" 
-                        title="Test in API Tester"
-                        style={{ padding: '6px 10px', fontSize: '0.85rem', borderRadius: '6px', background: 'rgba(59, 130, 246, 0.1)', color: '#60a5fa', border: '1px solid rgba(59, 130, 246, 0.2)' }} 
-                        onClick={() => navigate('/service-virtualization/api', { state: { request: api } })}>
-                        🧪 Test
-                      </button>
-                      <button 
-                        className="btn-secondary" 
-                        title="Edit API"
-                        style={{ padding: '6px 10px', fontSize: '0.85rem', borderRadius: '6px', border: '1px solid rgba(0,0,0,0.1)' }} 
-                        onClick={() => { setEditApi(api); setShowModal(true); }}>
-                        ✏️ Edit
-                      </button>
-                      <button 
-                        className="btn-danger" 
-                        title="Delete API"
-                        style={{ padding: '6px 10px', fontSize: '0.85rem', borderRadius: '6px', border: '1px solid rgba(239, 68, 68, 0.2)', background: 'rgba(239, 68, 68, 0.15)', color: '#fca5a5' }} 
-                        onClick={() => handleDelete(api.id)}>
-                        🗑️ Delete
-                      </button>
+              {open && (
+                <div className="registry-expanded">
+                  <div className="registry-expanded-meta">
+                    <div>
+                      <strong>Created At</strong>
+                      <div>{api.createdAt ? new Date(api.createdAt).toLocaleString() : '—'}</div>
                     </div>
-                  </td>
-                </tr>
-                {expandedApi === api.id && (
-                  <tr style={{ background: 'rgba(0,0,0,0.02)' }}>
-                    <td colSpan="8" style={{ padding: '24px' }}>
-                      <div style={{ display: 'flex', gap: '32px', marginBottom: '16px' }}>
-                        <div>
-                          <strong style={{ color: 'var(--text-muted)', fontSize: '0.85rem', display: 'block', marginBottom: '4px' }}>Created At</strong>
-                          <div style={{ fontSize: '0.9rem' }}>{new Date(api.createdAt).toLocaleString()}</div>
-                        </div>
-                        <div>
-                          <strong style={{ color: 'var(--text-muted)', fontSize: '0.85rem', display: 'block', marginBottom: '4px' }}>Environment</strong>
-                          <div style={{ fontSize: '0.9rem' }}>{api.environment}</div>
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <strong style={{ color: 'var(--text-muted)', fontSize: '0.85rem', display: 'block', marginBottom: '4px' }}>Response Payload</strong>
-                        {loadingResponse[api.id] ? (
-                          <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Loading response...</div>
-                        ) : (
-                          <pre style={{ maxHeight: '200px', overflowY: 'auto', overflowX: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-word', background: 'rgba(0,0,0,0.05)', padding: '12px', borderRadius: '6px' }}>
-                            {(() => {
-                              try {
-                                return JSON.stringify(JSON.parse(responses[api.id]), null, 2);
-                              } catch(e) {
-                                return responses[api.id] || 'No response data.';
-                              }
-                            })()}
-                          </pre>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </React.Fragment>
-            ))}
-            {filteredApis.length === 0 && (
-              <tr>
-                <td colSpan="8" style={{ textAlign: 'center', color: 'var(--text-muted)' }}>No APIs found matching your filters.</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+                    <div>
+                      <strong>Base URL</strong>
+                      <div className="registry-wrap">{api.baseUrl || '—'}</div>
+                    </div>
+                    <div>
+                      <strong>Endpoint</strong>
+                      <div className="registry-wrap">{api.endpoint || '—'}</div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <strong className="registry-response-label">Response Payload</strong>
+                    {loadingResponse[api.id] ? (
+                      <div className="registry-muted">Loading response...</div>
+                    ) : (
+                      <pre className="registry-response-pre">{formatResponse(responses[api.id])}</pre>
+                    )}
+                  </div>
+                </div>
+              )}
+            </article>
+          );
+        })}
+
+        {filteredApis.length === 0 && (
+          <div className="glass-panel registry-empty">No APIs found matching your filters.</div>
+        )}
       </div>
 
       {showModal && (
-        <ApiFormModal 
-          api={editApi} 
-          onClose={() => setShowModal(false)} 
-          onSave={() => { setShowModal(false); loadApis(); }} 
+        <ApiFormModal
+          api={editApi}
+          onClose={() => setShowModal(false)}
+          onSave={() => { setShowModal(false); loadApis(); }}
         />
       )}
     </div>

@@ -23,7 +23,12 @@ const RegisterPage = ({ onRegister }) => {
       }
       navigate('/', { replace: true });
     } catch (err) {
-      setError(err.response?.data?.error || 'Registration failed');
+      const data = err.response?.data;
+      const message =
+        (typeof data === 'object' && data?.error) ||
+        (typeof data === 'string' && data.trim()) ||
+        'Registration failed';
+      setError(message);
     }
   };
 

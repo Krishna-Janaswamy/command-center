@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { registryApi, healthApi } from '../../services/registryApi';
+import { parseJsonObject } from '../../utils/parseJsonObject';
 import EndpointCard from './EndpointCard';
 
 const ApiHealth = () => {
@@ -28,11 +29,11 @@ const ApiHealth = () => {
     try {
       const start = Date.now();
       const res = await healthApi.check({
-        url: api.baseUrl + (api.endpoint && api.endpoint !== '/' ? api.endpoint : ''),
+        url: (api.baseUrl || '') + (api.endpoint && api.endpoint !== '/' ? api.endpoint : ''),
         method: api.method,
-        headers: JSON.parse(api.healthCheckHeaders || '{}'),
+        headers: parseJsonObject(api.healthCheckHeaders),
         body: api.healthCheckBody,
-        params: JSON.parse(api.healthCheckParams || '{}')
+        params: parseJsonObject(api.healthCheckParams)
       });
       const time = Date.now() - start;
       

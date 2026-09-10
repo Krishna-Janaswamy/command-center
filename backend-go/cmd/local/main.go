@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	auth "github.com/example/service-virtualization-go/internal/auth"
@@ -71,7 +72,7 @@ func main() {
 	runtime := &virtualization.RuntimeHandler{Store: store, Blobs: virtualization.NewConfiguredBlobStore(context.Background())}
 	capture := &virtualization.CaptureHandler{Store: store, Blobs: virtualization.NewConfiguredBlobStore(context.Background())}
 	health := &virtualization.HealthCheckHandler{}
-	for _, pattern := range []string{"/api/registry", "/api/registry/", "/api/stubs", "/api/stubs/", "/api/requests", "/api/requests/", "/api/recorded-requests", "/api/settings", "/api/settings/", "/api/analytics"} {
+	for _, pattern := range []string{"/api/registry", "/api/registry/", "/api/stubs", "/api/stubs/", "/api/requests", "/api/requests/", "/api/recorded-requests", "/api/settings", "/api/settings/", "/api/analytics", "/api/mock", "/api/mock/"} {
 		mux.Handle(pattern, management)
 	}
 	mux.Handle("/api/capture", capture)
@@ -144,7 +145,13 @@ func requireRolesAdapter(jwtSvc *auth.JwtService, h http.Handler) http.Handler {
 			http.Error(w, "invalid token", http.StatusUnauthorized)
 			return
 		}
-		if claims.Role != "Dev Ops" {
+		isAdmin := strings.EqualFold(claims.Subject, "admin") ||
+			strings.EqualFold(claims.AdGroup, "admin") ||
+			strings.EqualFold(claims.AdGroup, "QED_DEV_OPS") ||
+			strings.EqualFold(claims.Role, "admin") ||
+			strings.EqualFold(claims.Role, "Dev Ops")
+
+		if !isAdmin {
 			http.Error(w, "forbidden: insufficient role", http.StatusForbidden)
 			return
 		}

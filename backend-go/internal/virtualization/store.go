@@ -1,6 +1,8 @@
 package virtualization
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"strings"
 	"sync"
 	"time"
@@ -100,7 +102,8 @@ func (s *MemoryStore) GetStub(id string) (*Stub, bool) {
 func (s *MemoryStore) SaveStub(v *Stub) *Stub {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if v.ID == "" {
+	isNew := v.ID == ""
+	if isNew {
 		v.ID = newID()
 	}
 	if v.Method == "" {
@@ -109,7 +112,25 @@ func (s *MemoryStore) SaveStub(v *Stub) *Stub {
 	if v.Version == "" {
 		v.Version = "v1"
 	}
+	if v.Environment == "" {
+		v.Environment = "Dev"
+	}
 	s.stubs[v.ID] = cloneStub(v)
+
+	if isNew {
+		v1 := &StubVersion{
+			ID:              newID(),
+			StubID:          v.ID,
+			Version:         v.Version,
+			VersionTag:      "Initial version",
+			ResponseStatus:  v.ResponseStatus,
+			ResponseBody:    v.ResponseBody,
+			ResponseHeaders: v.ResponseHeaders,
+			Active:          true,
+		}
+		s.versions[v1.ID] = v1
+	}
+
 	return cloneStub(v)
 }
 func (s *MemoryStore) DeleteStub(id string) bool {
@@ -119,6 +140,11 @@ func (s *MemoryStore) DeleteStub(id string) bool {
 		return false
 	}
 	delete(s.stubs, id)
+	for vid, ver := range s.versions {
+		if ver.StubID == id {
+			delete(s.versions, vid)
+		}
+	}
 	return true
 }
 func (s *MemoryStore) ClearStubs() {
@@ -171,6 +197,13 @@ func (s *MemoryStore) SaveVersion(v *StubVersion) *StubVersion {
 	}
 	c := *v
 	s.versions[v.ID] = &c
+	if c.Active {
+		if stub, ok := s.stubs[c.StubID]; ok {
+			stub.ResponseStatus = c.ResponseStatus
+			stub.ResponseBody = c.ResponseBody
+			stub.ResponseHeaders = c.ResponseHeaders
+		}
+	}
 	return &c
 }
 func (s *MemoryStore) DeleteVersion(id string) bool {
@@ -254,7 +287,11 @@ func pathMatches(pattern, actual string) bool {
 func bodyMatches(matcher, body string) bool {
 	return matcher == "" || matcher == body || strings.Contains(body, matcher)
 }
-func newID() string { return time.Now().UTC().Format("20060102150405.000000000") }
+func newID() string {
+	var b [8]byte
+	_, _ = rand.Read(b[:])
+	return time.Now().UTC().Format("20060102150405.000000000") + "-" + hex.EncodeToString(b[:])
+}
 func cloneAPI(v *API) *API {
 	if v == nil {
 		return nil

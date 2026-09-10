@@ -110,7 +110,19 @@ const APITesterTab = () => {
       method,
       headers: parsedHeaders,
       params: { endpoint },
-      data: method !== 'GET' ? body : undefined
+      data: method !== 'GET' ? body : undefined,
+      // Show upstream bodies for all status codes instead of treating them as axios errors.
+      validateStatus: () => true,
+      transformResponse: [(data) => {
+        if (typeof data !== 'string') return data;
+        const trimmed = data.trim();
+        if (!trimmed) return data;
+        try {
+          return JSON.parse(trimmed);
+        } catch (e) {
+          return data;
+        }
+      }]
     };
 
     try {
@@ -262,7 +274,11 @@ const APITesterTab = () => {
                   setShowNoStubModal(false);
                   if (pendingRequestData) {
                     setLoading(true);
-                    pendingRequestData.params.allowRealApi = true;
+                    pendingRequestData.params = {
+                      ...(pendingRequestData.params || {}),
+                      allowRealApi: true
+                    };
+                    pendingRequestData.validateStatus = () => true;
                     try {
                       const start = Date.now();
                       const retryRes = await api.request(pendingRequestData);

@@ -1,19 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
-
-const Header = ({ user, onLogout }) => {
-
-
+const Header = ({ user, onLogout, onMenuClick }) => {
   return (
-    <header>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-        <h2 style={{ margin: 0, fontSize: '1.25rem' }}>Control Panel</h2>
+    <header className="app-header">
+      <div className="app-header-left">
+        <button
+          type="button"
+          className="menu-toggle"
+          aria-label="Open navigation"
+          onClick={onMenuClick}
+        >
+          <span />
+          <span />
+          <span />
+        </button>
+        <h2>Control Panel</h2>
       </div>
-      
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-        <div style={{ textAlign: 'right' }}>
-          <div style={{ fontWeight: 500 }}>{user?.sub || user?.username}</div>
-          <div style={{ fontSize: '0.8rem', color: 'var(--info)' }}>{user?.role}</div>
+
+      <div className="app-header-right">
+        <div className="app-header-user">
+          <div className="app-header-username">{user?.sub || user?.username}</div>
+          <div className="app-header-role">{user?.role}</div>
         </div>
         <button className="btn btn-secondary" onClick={onLogout}>Logout</button>
       </div>

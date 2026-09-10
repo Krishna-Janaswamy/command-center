@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { registryApi } from '../../services/registryApi';
 import ReactDOM from 'react-dom';
 import { parseCurl } from '../../utils/curlParser';
+import { normalizeJsonObjectField, parseJsonObject } from '../../utils/parseJsonObject';
 
 const ApiFormModal = ({ api, onClose, onSave }) => {
   const [formData, setFormData] = useState({
@@ -36,11 +37,28 @@ const ApiFormModal = ({ api, onClose, onSave }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const headersText = (formData.healthCheckHeaders || '').trim();
+    const paramsText = (formData.healthCheckParams || '').trim();
+    if (headersText && headersText !== '{}' && parseJsonObject(headersText, null) == null) {
+      alert('Health Check Headers must be valid JSON, e.g. {"Content-Type":"application/json"}');
+      return;
+    }
+    if (paramsText && paramsText !== '{}' && parseJsonObject(paramsText, null) == null) {
+      alert('Health Check Params must be valid JSON');
+      return;
+    }
+
+    const payload = {
+      ...formData,
+      healthCheckHeaders: normalizeJsonObjectField(formData.healthCheckHeaders),
+      healthCheckParams: normalizeJsonObjectField(formData.healthCheckParams),
+    };
+
     try {
       if (api && api.id) {
-        await registryApi.update(api.id, formData);
+        await registryApi.update(api.id, payload);
       } else {
-        await registryApi.create(formData);
+        await registryApi.create(payload);
       }
       onSave();
     } catch (err) {
@@ -93,17 +111,17 @@ const ApiFormModal = ({ api, onClose, onSave }) => {
             </div>
 
             {['POST', 'PUT', 'PATCH'].includes(formData.method) && (
-              <div className="form-group" style={{ gridColumn: 'span 2' }}>
+              <div className="form-group form-group-full">
                 <label>Health Check Body</label>
                 <textarea className="form-control" value={formData.healthCheckBody || ''} onChange={e => setFormData({...formData, healthCheckBody: e.target.value})} rows="3" />
               </div>
             )}
 
-            <div className="form-group" style={{ gridColumn: 'span 2' }}>
+            <div className="form-group form-group-full">
               <label>Health Check Headers (JSON)</label>
               <textarea className="form-control" value={formData.healthCheckHeaders || '{}'} onChange={e => setFormData({...formData, healthCheckHeaders: e.target.value})} rows="2" />
             </div>
-            <div className="form-group" style={{ gridColumn: 'span 2' }}>
+            <div className="form-group form-group-full">
               <label>Description</label>
               <textarea className="form-control" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} rows="2" />
             </div>

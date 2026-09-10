@@ -18,10 +18,16 @@ func NewAuthHandler(u service.UserService, j *auth.JwtService) *AuthHandler {
 	return &AuthHandler{users: u, jwtService: j}
 }
 
+func writeJSONError(w http.ResponseWriter, status int, message string) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(map[string]string{"error": message})
+}
+
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Register endpoint hit from %s", r.RemoteAddr)
 	if r.Method != http.MethodPost {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		writeJSONError(w, http.StatusMethodNotAllowed, "method not allowed")
 		return
 	}
 
@@ -32,24 +38,24 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		AdGroup  string `json:"adGroup"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "invalid body", http.StatusBadRequest)
+		writeJSONError(w, http.StatusBadRequest, "invalid body")
 		return
 	}
 
 	if req.Username == "" || req.Password == "" {
-		http.Error(w, "username and password are required", http.StatusBadRequest)
+		writeJSONError(w, http.StatusBadRequest, "username and password are required")
 		return
 	}
 
 	user, err := h.users.RegisterUser(req.Username, req.Password, req.Email, req.AdGroup)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusConflict)
+		writeJSONError(w, http.StatusConflict, err.Error())
 		return
 	}
 
 	token, err := h.jwtService.GenerateToken(user.Username, user.Role, user.AdGroup)
 	if err != nil {
-		http.Error(w, "failed to generate token", http.StatusInternalServerError)
+		writeJSONError(w, http.StatusInternalServerError, "failed to generate token")
 		return
 	}
 

@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -38,7 +39,7 @@ func (s *pgUserService) RegisterUser(username, password, email, adGroup string) 
 	}
 
 	role := "Default User"
-	if adGroup == "QED_DEV_OPS" {
+	if strings.EqualFold(adGroup, "QED_DEV_OPS") || strings.EqualFold(adGroup, "admin") || strings.EqualFold(username, "admin") {
 		role = "Dev Ops"
 	}
 
